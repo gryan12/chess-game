@@ -18,11 +18,11 @@ int main() {
 
     std::cout <<"\n=========\n"; 
 
-    int m1[] = {1, 3}; 
-    int m2[] = {3, 3}; 
+    Coords m1(1, 3); 
+    Coords m2(3, 3); 
+
     newBoard.movePiece(m1, m2); 
 
-    
     newBoard.printBoard();
 
     return 0; 

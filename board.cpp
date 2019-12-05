@@ -95,15 +95,12 @@ void Board::printBoard() {
 
 /* pointer to piece (or null pointer) at given board
  * coords */
-Piece* Board::pieceAt(int *location) {
-    int x, y; 
-    x = location[0];
-    y = location[1]; 
-    return boardState[x][y]; 
+Piece* Board::pieceAt(const Coords &location) {
+    return boardState[location.x][location.y]; 
 }
 
 
-bool Board::movePiece(int origin[2], int destination[2]) {
+bool Board::movePiece(const Coords &origin, const Coords &destination) {
     if (pieceAt(origin) == NULL) {
         return false; 
     }
@@ -113,9 +110,8 @@ bool Board::movePiece(int origin[2], int destination[2]) {
         if (pieceAt(destination)) {
             takenPieces.push_back(pieceAt(destination)); 
         }
-
-        boardState[destination[0]][destination[1]] = boardState[origin[0]][origin[1]]; 
-        boardState[origin[0]][origin[1]] = NULL; 
+        boardState[destination.x][destination.y] = boardState[origin.x][origin.y]; 
+        boardState[origin.x][origin.y] = NULL; 
         return true; 
     }
     return false; 
