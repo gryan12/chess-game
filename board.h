@@ -15,7 +15,7 @@ class Board {
     public:
         bool movePiece(const Coords &origin, const Coords &destination); 
         void printBoard(); 
-        Piece* pieceAt(const Coords &location); 
+        Piece* pieceAt(const Coords &location) const; 
         Board(); 
         ~Board();
 };

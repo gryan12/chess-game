@@ -95,16 +95,20 @@ void Board::printBoard() {
 
 /* pointer to piece (or null pointer) at given board
  * coords */
-Piece* Board::pieceAt(const Coords &location) {
+Piece* Board::pieceAt(const Coords &location) const {
+    std::cout << "\nin pieceat\n"; 
     return boardState[location.x][location.y]; 
 }
 
 
 bool Board::movePiece(const Coords &origin, const Coords &destination) {
+    std::cout << "\nin move\n"; 
+
     if (pieceAt(origin) == NULL) {
         return false; 
     }
 
+    std::cout << "\nin move\n"; 
     if (pieceAt(origin)->isValidMove(origin, destination, *this)) {
 
         if (pieceAt(destination)) {

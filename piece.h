@@ -15,6 +15,9 @@ class Piece {
         virtual char getSymbol() = 0; 
 
         bool take(); 
+
+        bool sameColor(Piece *piece); 
+
         bool isTaken(); 
         bool isWhite(); 
         bool hasMoved(); 
@@ -72,9 +75,12 @@ class King : public Piece {
 class Pawn : public Piece {
     private: 
         const char symbol = 'p'; 
+        bool enpassant = false; 
     public: 
         bool isValidMove(const Coords &origin, const Coords &destination, const Board &board); 
          char getSymbol(); 
+         bool  canBeEnpassant(); 
+         void setEnpassant(bool whether); 
 
         Pawn(int rand); 
 }; 
