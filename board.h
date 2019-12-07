@@ -16,6 +16,16 @@ class Board {
         bool movePiece(const Coords &origin, const Coords &destination); 
         void printBoard(); 
         Piece* pieceAt(const Coords &location) const; 
+        Piece* pieceAt(int x, int y) const; 
+
+        bool inCheck(bool isWhiteKing); 
+        bool inCheckMate(bool isWhiteKing); 
+        
+        Coords getKingSq(bool white); 
+
+
+
+
         Board(); 
         ~Board();
 };

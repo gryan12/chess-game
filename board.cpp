@@ -1,4 +1,5 @@
 #include "board.h"
+#include <iomanip>
 #include <cstddef> 
 #include <iostream> 
 #include <string> 
@@ -72,23 +73,31 @@ Board::Board()  {
 }
 
 Board::~Board() {
+    //delete pieces on the board
     for (int i = 0; i < BOARD_LENGTH; i++) {
         delete[] boardState[i]; 
     }
     delete[] boardState; 
+
+    //delete peices off the board
+    for (auto piece: takenPieces) {
+        delete piece; 
+    }
 }
 
 void Board::printBoard() {
+
     std::cout <<'\n'; 
     for (int i = 0; i < BOARD_LENGTH; i++) {
-        for (int j = 0; j < BOARD_LENGTH; j++) {
-            if (boardState[i][j] != NULL) {
-                std::cout << boardState[i][j]->getSymbol(); 
-            } else {
-                std::cout << " "; 
+       
+            for (int j = 0; j < BOARD_LENGTH; j++) {
+                if (boardState[i][j] != NULL) {
+                    std::cout << boardState[i][j]->getSymbol(); 
+                } else {
+                    std::cout << " "; 
+                }
+                std::cout << "\t"; 
             }
-            std::cout << '\t'; 
-        }
         std::cout << '\n'; 
     }
 }
@@ -96,9 +105,12 @@ void Board::printBoard() {
 /* pointer to piece (or null pointer) at given board
  * coords */
 Piece* Board::pieceAt(const Coords &location) const {
-    std::cout << "\nin pieceat\n"; 
     return boardState[location.x][location.y]; 
 }
+Piece* Board::pieceAt(int x, int y) const {
+    return boardState[x][y]; 
+}
+
 
 
 bool Board::movePiece(const Coords &origin, const Coords &destination) {
@@ -120,3 +132,28 @@ bool Board::movePiece(const Coords &origin, const Coords &destination) {
     }
     return false; 
 }
+
+Coords Board::getKingSq(bool white) {
+    for (int i = 0; i < BOARD_LENGTH; i++) {
+        for (int j = 0; j < BOARD_LENGTH; j++) {
+            Coords kingSq(i, j); 
+            Piece *temp = pieceAt(kingSq); 
+            if (temp && temp->getSymbol() == 'K') {
+                if (temp->isWhite() == white) {
+                    return kingSq; 
+                }
+            }
+        }
+    }
+    //should never be reached. make exception
+    Coords failed(9,9) ;
+    return failed; 
+}
+
+bool Board::inCheck(bool whiteKing) {
+    Coords kingSq; 
+    kingSq = getKingSq(whiteKing); 
+
+    return true; 
+}
+

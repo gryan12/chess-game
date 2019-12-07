@@ -12,6 +12,7 @@ bool outOfBounds(const Coords &destination) {
     return false; 
 }
 
+
 bool Piece::isWhite() {
     return white;
 }
@@ -35,8 +36,8 @@ bool Piece::sameColor(Piece *piece) {
     return (piece->isWhite() == isWhite()); 
 }
 
-void Pawn::setEnpassant(bool canornot) {
-    enpassant = canornot; 
+void Pawn::setEnpassant(bool can) {
+    enpassant = can; 
 }
 //pawn
 //this... this should be static, shouldn't it?
@@ -63,7 +64,13 @@ bool Pawn::isValidMove(const Coords &origin, const Coords &destination, const Bo
 
     //its here. i am tryng to acess value of anull ponter. 
     if (ydif > 1 && board.pieceAt(destination) == NULL) {
-        return false; //trying to take non-existant piece / own piece
+        if (!enpassant) {
+            return false; //trying to take non-existant piece / own piece
+        }
+
+        else {
+
+        }
     } 
 
     else if (board.pieceAt(destination) && sameColor(board.pieceAt(destination))) {
@@ -189,9 +196,11 @@ bool Rook::isValidMove(const Coords &origin, const Coords &destination, const Bo
     x = origin.x - destination.x; 
     y = origin.y - destination.y;
 
-    //the directions, either positive or negative 1
-    int xdir = xdif / x; 
-    int ydir = ydif / y; 
+    //the directions, one will be 0
+    int xdir, ydir; 
+    xdir = (x==0) ? 0 : xdif / x; 
+    ydir = (y==0) ? 0 : ydif / y; 
+
 
     //only one of xdir or ydir should be non-zero, just quicker this way
     Coords intermediateSq(origin.x, origin.y); 
@@ -210,6 +219,64 @@ char Rook::getSymbol()  {
 }
 //queen
 bool Queen::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
+
+    if (outOfBounds(destination)) {
+        return false; 
+    }
+
+    //get abs differences
+    int xdif, ydif; 
+    xdif = abs(origin.x - destination.x); 
+    ydif = abs(origin.y - destination.y); 
+
+    //get actual difference;
+    int x, y; 
+    x = origin.x - destination.x; 
+    y = origin.y - destination.y;
+
+    //directions - warning, could be 0
+    int xdir, ydir; 
+    xdir = (x==0) ? 0 : xdif / x; 
+    ydir = (y==0) ? 0 : ydif / y; 
+
+
+    //if trying to take own piece
+    if (board.pieceAt(destination)) {
+        if (sameColor(board.pieceAt(destination))) {
+                return false; 
+        }
+    }
+
+    Coords intermediateSq (origin.x, origin.y); 
+
+    //if moving like a bishop
+    if (xdif == ydif) {
+        while (intermediateSq != destination) {
+            intermediateSq.x += xdir; 
+            intermediateSq.y += ydir; 
+
+            //there is piece in the way
+            if (board.pieceAt(intermediateSq)) {
+                return false; 
+            }
+        }
+    }
+    //else if moving like rook
+    else if (xdif && !ydif || ydif && !xdif) {
+        while (intermediateSq != destination) {
+            intermediateSq.x += xdir; 
+            intermediateSq.y += ydir; 
+            if (board.pieceAt(intermediateSq)) {
+                return false; 
+            }
+        }
+    }
+
+    //if moving like neither a bishop or a rook
+    else {
+        return false; 
+    }
+
     return true; 
 }
 char Queen::getSymbol()  {
@@ -244,14 +311,15 @@ bool King::isValidMove(const Coords &origin, const Coords &destination, const Bo
 
         bool queenSide = (ydir < 0); 
 
-        Coords intermediateSq(destination.x, destination.y+1); 
+        Coords endSq(destination.x, destination.y+1); 
 
-        if (!queenSide) {
-            intermediateSq.y++; 
+        if (queenSide) {
+            endSq.y -= 7; 
         }
+        //should be rook
+        Piece *endPiece = board.pieceAt(endSq); 
 
-        Piece *endPiece = board.pieceAt(intermediateSq); 
-
+        Coords intermediateSq(origin.x, origin.y); 
         if (endPiece) {
             if (endPiece->getSymbol() == 'R') {
                 if (!endPiece->hasMoved()) {
@@ -259,7 +327,8 @@ bool King::isValidMove(const Coords &origin, const Coords &destination, const Bo
                     //if pieces in the way
                     if (queenSide) {
                         while (n--) {
-                            if (board.pieceAt(destination.x, destination.y-n)) {
+                            //if nay piece between rook and king
+                            if (board.pieceAt(destination.x, endSq.y+n)) {
                                 return false; 
                             }
                         }
@@ -276,7 +345,6 @@ bool King::isValidMove(const Coords &origin, const Coords &destination, const Bo
                 }
             }
         }
-
         return false; 
     }
 
