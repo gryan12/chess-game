@@ -1,4 +1,5 @@
 #include "board.h"
+#include <iomanip>
 #include <cstddef> 
 #include <iostream> 
 #include <string> 
@@ -72,51 +73,87 @@ Board::Board()  {
 }
 
 Board::~Board() {
+    //delete pieces on the board
     for (int i = 0; i < BOARD_LENGTH; i++) {
         delete[] boardState[i]; 
     }
     delete[] boardState; 
+
+    //delete peices off the board
+    for (auto piece: takenPieces) {
+        delete piece; 
+    }
 }
 
 void Board::printBoard() {
+
     std::cout <<'\n'; 
     for (int i = 0; i < BOARD_LENGTH; i++) {
-        for (int j = 0; j < BOARD_LENGTH; j++) {
-            if (boardState[i][j] != NULL) {
-                std::cout << boardState[i][j]->getSymbol(); 
-            } else {
-                std::cout << " "; 
+       
+            for (int j = 0; j < BOARD_LENGTH; j++) {
+                if (boardState[i][j] != NULL) {
+                    std::cout << boardState[i][j]->getSymbol(); 
+                } else {
+                    std::cout << " "; 
+                }
+                std::cout << "\t"; 
             }
-            std::cout << '\t'; 
-        }
         std::cout << '\n'; 
     }
 }
 
 /* pointer to piece (or null pointer) at given board
  * coords */
-Piece* Board::pieceAt(int *location) {
-    int x, y; 
-    x = location[0];
-    y = location[1]; 
+Piece* Board::pieceAt(const Coords &location) const {
+    return boardState[location.x][location.y]; 
+}
+Piece* Board::pieceAt(int x, int y) const {
     return boardState[x][y]; 
 }
 
 
-bool Board::movePiece(int origin[2], int destination[2]) {
+
+bool Board::movePiece(const Coords &origin, const Coords &destination) {
+    std::cout << "\nin move\n"; 
+
     if (pieceAt(origin) == NULL) {
         return false; 
     }
 
+    std::cout << "\nin move\n"; 
     if (pieceAt(origin)->isValidMove(origin, destination, *this)) {
 
         if (pieceAt(destination)) {
             takenPieces.push_back(pieceAt(destination)); 
         }
-
-        boardState[destination[0]][destination[1]] = boardState[origin[0]][origin[1]]; 
-        boardState[origin[0]][origin[1]] = NULL; 
+        boardState[destination.x][destination.y] = boardState[origin.x][origin.y]; 
+        boardState[origin.x][origin.y] = NULL; 
         return true; 
     }
     return false; 
 }
+
+Coords Board::getKingSq(bool white) {
+    for (int i = 0; i < BOARD_LENGTH; i++) {
+        for (int j = 0; j < BOARD_LENGTH; j++) {
+            Coords kingSq(i, j); 
+            Piece *temp = pieceAt(kingSq); 
+            if (temp && temp->getSymbol() == 'K') {
+                if (temp->isWhite() == white) {
+                    return kingSq; 
+                }
+            }
+        }
+    }
+    //should never be reached. make exception
+    Coords failed(9,9) ;
+    return failed; 
+}
+
+bool Board::inCheck(bool whiteKing) {
+    Coords kingSq; 
+    kingSq = getKingSq(whiteKing); 
+
+    return true; 
+}
+
