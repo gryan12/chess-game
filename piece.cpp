@@ -5,6 +5,8 @@
 
 //piece
 
+
+
 bool outOfBounds(const Coords &destination) {
     if (destination.x > BOARD_LENGTH || destination.y > BOARD_LENGTH) {
         return true; 
@@ -12,6 +14,26 @@ bool outOfBounds(const Coords &destination) {
     return false; 
 }
 
+directionInfo Piece::getDirectionInfo(const Coords &origin, const Coords &destination) {
+
+    //get actual difference;
+    int x, y; 
+    x = origin.x - destination.x; 
+    y = origin.y - destination.y;
+
+    //get abs differences
+    int xdif, ydif; 
+    xdif = abs(origin.x - destination.x); 
+    ydif = abs(origin.y - destination.y); 
+
+    //directions 
+    int xdir, ydir; 
+    xdir = (x==0) ? 0 : xdif / x; 
+    ydir = (y==0) ? 0 : ydif / y; 
+
+    directionInfo info(x, y, xdif, ydif, xdir, ydir); 
+    return info; 
+}
 
 bool Piece::isWhite() {
     return white;
@@ -354,22 +376,146 @@ char King::getSymbol()  {
     return symbol;
 }
 
-Knight::Knight(int rand) {
+bool Pawn::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+    directionInfo info (getDirectionInfo(piece, kingLocation)); 
+
+    //if 1-to-1 
+    if (info.absy == 1 && info.absx == 1 ) {
+
+        //if white, pawns threaten forward
+        if (board.pieceAt(piece)->isWhite()) {
+            if (info.xdir > 0) {
+                return true; 
+            }
+        } else {
+            //if black, pawns threaten backward
+            if (info.xdir < 0) {
+                return true; 
+            }
+        }
+    }
+
+    return false; 
+}
+bool Bishop::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+
+    directionInfo info (getDirectionInfo(piece, kingLocation)); 
+
+    //if not on same diagonal
+    if (info.absx != info.absy) {
+        return false; 
+    }
+
+    //if piece between bishop and king
+
+    Coords intermediateSq(piece.x, piece.y); 
+
+    while (intermediateSq != kingLocation) {
+        intermediateSq.x += info.xdir; 
+        intermediateSq.y += info.ydir; 
+
+        //there is piece in the way
+        if (board.pieceAt(intermediateSq)) {
+            return false; 
+        }
+    }
+
+
+    return true; 
+}
+bool Rook::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+
+    directionInfo info(getDirectionInfo(piece, kingLocation)); 
+
+    //if not differing in ONLY col or row coord
+    if (info.ydir && info.xdir) {
+        return false; 
+    }
+
+    //only one of xdir or ydir should be non-zero, just quicker this way
+    Coords intermediateSq(piece.x, piece.y); 
+    while (intermediateSq != kingLocation) {
+        intermediateSq.x += info.xdir; 
+        intermediateSq.y += info.ydir; 
+        if (board.pieceAt(intermediateSq)) {
+            return false; 
+        }
+    }
+
+    //if only xdir or ydir, and if no piece in the way, opposing king in check
+    return true; 
+}
+
+bool Knight::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+
+    directionInfo info(getDirectionInfo(piece, kingLocation)); 
+
+    //think this suffices. 
+    if ((info.absx == 2 && info.absy == 1) || (info.absx == 1 && info.absy == 2)) {
+        return true; 
+    }
+
+    return false; 
+}
+
+
+bool Queen::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+    Piece *temp; 
+    Rook* rook; 
+    Bishop* bishop; 
+
+    directionInfo info(getDirectionInfo(piece, kingLocation)); 
+
+    temp = board.pieceAt(piece); 
+    
+    rook = dynamic_cast<Rook*> (temp); 
+    if (rook->checkingKing(piece, kingLocation, board)) {
+        return true; 
+    }
+
+    bishop = dynamic_cast<Bishop*>(temp); 
+    if (bishop->checkingKing(piece, kingLocation, board)) {
+        return true; 
+    }
+    return false; 
+}
+
+//obviously not possible for a king to check a king
+//but check needed to make sure that kings are not being moved next to each other
+bool King::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+
+    directionInfo info(getDirectionInfo(piece, kingLocation)); 
+
+    //if the enemy king is one square away horizontally or diagonally 
+    if (info.absx == 1 && (info.absy == 0 || info.absy == 1)) {
+        return true; 
+    }
+
+    //if enemy king is one sqaure away vertically
+    if (info.absx == 0 && info.absy == 1) {
+        return true; 
+    } 
+
+    return false; 
+}
+
+
+Knight::Knight(bool white) {
     setPiece(rand); 
 }
-Bishop::Bishop(int rand) {
+Bishop::Bishop(bool white) {
     setPiece(rand); 
 }
-Queen::Queen(int rand) {
+Queen::Queen(bool white) {
     setPiece(rand); 
 }
-King::King(int rand) {
+King::King(bool white) {
     setPiece(rand); 
 }
-Rook::Rook(int rand) {
+Rook::Rook(bool white) {
     setPiece(rand); 
 }
-Pawn::Pawn(int rand) {
+Pawn::Pawn(bool white) {
     setPiece(rand); 
 }
 

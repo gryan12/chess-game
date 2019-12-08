@@ -19,7 +19,8 @@ class Board {
         Piece* pieceAt(int x, int y) const; 
 
         bool inCheck(bool isWhiteKing); 
-        bool inCheckMate(bool isWhiteKing); 
+        bool inCheck(const Coords &kingLocation, bool white); 
+        bool isCheckmate(bool isWhiteKing); 
         
         Coords getKingSq(bool white); 
 

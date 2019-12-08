@@ -151,8 +151,94 @@ Coords Board::getKingSq(bool white) {
 }
 
 bool Board::inCheck(bool whiteKing) {
-    Coords kingSq; 
-    kingSq = getKingSq(whiteKing); 
+    for (int i = 0; i < BOARD_LENGTH; i++) {
+        for (int j = 0; j < BOARD_LENGTH; j++) {
+            //if piece present at coords which is of opposite color
+            if ((pieceAt(i,j) != NULL) && (pieceAt(i, j)->isWhite() != whiteKing)) {
+                Coords currentSq(i, j); 
+                Coords kingSq(getKingSq(whiteKing)); 
+                if (pieceAt(i, j)->checkingKing(currentSq, kingSq, *this)) {
+                    return true; 
+                }
+            }
+        }
+    }
+    return false; 
+}
+
+bool Board::inCheck(const Coords &kingLocation, bool whiteKing) {
+    for (int i = 0; i < BOARD_LENGTH; i++) {
+        for (int j = 0; j < BOARD_LENGTH; j++) {
+            //if piece present at coords which is of opposite color
+            if ((pieceAt(i,j) != NULL) && (pieceAt(i, j)->isWhite() != whiteKing)) {
+                Coords currentSq(i, j); 
+                if (pieceAt(i, j)->checkingKing(currentSq, kingLocation, *this)) {
+                    return true; 
+                }
+            }
+        }
+    }
+    return false; 
+}
+
+//override inCheck to also take a Coords. 
+//then, can just do the above function but for every available square to the king
+//messy but would be: if valid move (for every single-squared difference) then
+//check if (would be) check. if true for every square then return cmate
+bool Board::isCheckmate(bool whiteKing) {
+    King tempKing(whiteKing); 
+    Coords kingSq(getKingSq(whiteKing)); 
+    
+    if (!inCheck(whiteKing)) {
+        return false; 
+    }
+
+    //going methodically through every space near the king. 
+    Coords tempSq(kingSq); 
+
+    //placeholder, v ugly
+
+    //vertical mvt
+    tempSq.x += 1; 
+    if(tempKing.isValidMove(kingSq, tempSq, *this)) {
+        return false; 
+    }
+    tempSq.x -= 2; 
+    if(tempKing.isValidMove(kingSq, tempSq, *this)) {
+        return false; 
+    }
+    //horizontal mvt; 
+    tempSq.x += 1; 
+    tempSq.y += 1;
+    if(tempKing.isValidMove(kingSq, tempSq, *this)) {
+        return false; 
+    }
+    tempSq.y -= 2;
+    if(tempKing.isValidMove(kingSq, tempSq, *this)) {
+        return false; 
+    }
+
+    //lower diagonal mvt
+    tempSq.x -=1; 
+    if(tempKing.isValidMove(kingSq, tempSq, *this)) {
+        return false; 
+    }
+
+    tempSq.x +=2; 
+    if(tempKing.isValidMove(kingSq, tempSq, *this)) {
+        return false; 
+    }
+
+    //upper diagonal mvt
+    tempSq.y +=2; 
+    if(tempKing.isValidMove(kingSq, tempSq, *this)) {
+        return false; 
+    }
+
+    tempSq.y -=2; 
+    if(tempKing.isValidMove(kingSq, tempSq, *this)) {
+        return false; 
+    }
 
     return true; 
 }
