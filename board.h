@@ -12,6 +12,7 @@ class Board {
     private: 
         Piece ***boardState; 
         std::vector<Piece*> takenPieces; 
+        int moveNumber = 0; 
     public:
         bool movePiece(const Coords &origin, const Coords &destination); 
         void printBoard(); 
@@ -21,10 +22,12 @@ class Board {
         bool inCheck(bool isWhiteKing); 
         bool inCheck(const Coords &kingLocation, bool white); 
         bool isCheckmate(bool isWhiteKing); 
-        
         Coords getKingSq(bool white); 
+        bool submitMove(std::string start, std::string end); 
 
+        void resetBoard(); 
 
+        int getMoveNumber(); 
 
 
         Board(); 

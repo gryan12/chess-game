@@ -18,13 +18,13 @@ directionInfo Piece::getDirectionInfo(const Coords &origin, const Coords &destin
 
     //get actual difference;
     int x, y; 
-    x = origin.x - destination.x; 
-    y = origin.y - destination.y;
+    x = destination.x - origin.x; 
+    y = destination.y - origin.y; 
 
     //get abs differences
     int xdif, ydif; 
-    xdif = abs(origin.x - destination.x); 
-    ydif = abs(origin.y - destination.y); 
+    xdif = abs(x); 
+    ydif = abs(y); 
 
     //directions 
     int xdir, ydir; 
@@ -46,7 +46,7 @@ bool Piece::hasMoved() {
     return moved; 
 }
 
-bool Piece::isMoved() {
+void Piece::isMoved() {
     moved = true; 
 }
 
@@ -199,37 +199,47 @@ char Knight::getSymbol()  {
 }
 //rook
 bool Rook::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
+    std::cout <<"\nStart of rook valid\n"; 
 
    if (destination.x > BOARD_LENGTH || destination.y > BOARD_LENGTH) {
        return false; 
    } 
-    //get abs differences
-    int xdif, ydif; 
-    xdif = abs(origin.x - destination.x); 
-    ydif = abs(origin.y - destination.y); 
+//    //get abs differences
+//    int xdif, ydif; 
+//    xdif = abs(origin.x - destination.x); 
+//    ydif = abs(origin.y - destination.y); 
+//
+//    //rooks can only move in EITHer x or y axis
+//    if (xdif && ydif) {
+//        return false; 
+//    }
+//
+//    //get actual difference;
+//    int x, y; 
+//    x = origin.x - destination.x; 
+//    y = origin.y - destination.y;
+//
+//    //the directions, one will be 0
+//    int xdir, ydir; 
+//    xdir = (x==0) ? 0 : xdif / x; 
+//    ydir = (y==0) ? 0 : ydif / y; 
+//
 
-    //rooks can only move in EITHer x or y axis
-    if (xdif && ydif) {
-        return false; 
-    }
 
-    //get actual difference;
-    int x, y; 
-    x = origin.x - destination.x; 
-    y = origin.y - destination.y;
+   directionInfo info = getDirectionInfo(origin, destination); 
 
-    //the directions, one will be 0
-    int xdir, ydir; 
-    xdir = (x==0) ? 0 : xdif / x; 
-    ydir = (y==0) ? 0 : ydif / y; 
+   if (info.absx && info.absy) {
+       return false; 
+   }
 
-
-    //only one of xdir or ydir should be non-zero, just quicker this way
+    //only one of xdir or ydir should be non-zero btw
     Coords intermediateSq(origin.x, origin.y); 
     while (intermediateSq != destination) {
-        intermediateSq.x += xdir; 
-        intermediateSq.y += ydir; 
+        intermediateSq.x += info.xdir; 
+        intermediateSq.y += info.ydir; 
+        std::cout <<"\nHello, in roovalid. sq.x = " << intermediateSq.x << " sq.y = " << intermediateSq.y << "\n"; 
         if (board.pieceAt(intermediateSq)) {
+            std::cout <<"\nThere is a piece obstructing the rook at sq: " << intermediateSq.toString() <<"\n"; 
             return false; 
         }
     }
@@ -284,7 +294,7 @@ bool Queen::isValidMove(const Coords &origin, const Coords &destination, const B
         }
     }
     //else if moving like rook
-    else if (xdif && !ydif || ydif && !xdif) {
+    else if ((xdif && !ydif) || (ydif && !xdif)) {
         while (intermediateSq != destination) {
             intermediateSq.x += xdir; 
             intermediateSq.y += ydir; 
@@ -323,8 +333,6 @@ bool King::isValidMove(const Coords &origin, const Coords &destination, const Bo
     int xdir, ydir; 
     xdir = origin.x - destination.x; 
     ydir = origin.y - destination.y;
-
-    bool kingSide; 
 
     //trying to castle
     //king must not have moved; releavn rook must not have moved; must be no pieces in the way 
@@ -500,25 +508,101 @@ bool King::checkingKing(const Coords &piece, const Coords &kingLocation, const B
 }
 
 
-Knight::Knight(bool white) {
-    setPiece(rand); 
+std::string Pawn::toString() {
+    std::string pawnString = ""; 
+    
+    if (isWhite()) {
+        pawnString.append("White's "); 
+    } else {
+        pawnString.append("Black's "); 
+    }
+    pawnString.append(" pawn"); 
+    return pawnString; 
+
 }
-Bishop::Bishop(bool white) {
-    setPiece(rand); 
+std::string Knight::toString() {
+    std::string pawnString = ""; 
+    if (isWhite()) {
+        pawnString.append("White's "); 
+    } else {
+        pawnString.append("Black's "); 
+    }
+    pawnString.append(" knight"); 
+    return pawnString; 
+
 }
-Queen::Queen(bool white) {
-    setPiece(rand); 
+std::string Bishop::toString() {
+    std::string pawnString = ""; 
+    if (isWhite()) {
+        pawnString.append("White's "); 
+    } else {
+        pawnString.append("Black's "); 
+    }
+    pawnString.append(" bishop"); 
+    return pawnString; 
+
 }
-King::King(bool white) {
-    setPiece(rand); 
+std::string Rook::toString() {
+    std::string pawnString = ""; 
+    if (isWhite()) {
+        pawnString.append("White's "); 
+    } else {
+        pawnString.append("Black's "); 
+    }
+    pawnString.append(" rook"); 
+    return pawnString; 
+
 }
-Rook::Rook(bool white) {
-    setPiece(rand); 
+std::string Queen::toString() {
+    std::string pawnString = ""; 
+    if (isWhite()) {
+        pawnString.append("White's "); 
+    } else {
+        pawnString.append("Black's "); 
+    }
+    pawnString.append(" queen"); 
+    return pawnString; 
+
 }
-Pawn::Pawn(bool white) {
-    setPiece(rand); 
+std::string King::toString() {
+    std::string pawnString = ""; 
+    if (isWhite()) {
+        pawnString.append("White's "); 
+    } else {
+        pawnString.append("Black's "); 
+    }
+    pawnString.append(" king"); 
+    return pawnString; 
+
 }
 
+
+Knight::Knight(bool white_) {
+    setPiece(white_); 
+}
+Bishop::Bishop(bool white_) {
+    setPiece(white_); 
+}
+Queen::Queen(bool white_) {
+    setPiece(white_); 
+}
+King::King(bool white_) {
+    setPiece(white_); 
+}
+Rook::Rook(bool white_) {
+    setPiece(white_); 
+}
+Pawn::Pawn(bool white_) {
+    setPiece(white_); 
+}
+
+Piece::~Piece(){}
+Pawn::~Pawn(){}
+Bishop::~Bishop(){}
+Knight::~Knight(){}
+Queen::~Queen(){}
+King::~King(){}
+Rook::~Rook(){}
 
 
 

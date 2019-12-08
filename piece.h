@@ -29,6 +29,7 @@ class Piece {
         virtual char getSymbol() = 0; 
 
         virtual bool checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) = 0; 
+        virtual std::string toString() = 0; 
 
         bool take(); 
 
@@ -37,10 +38,12 @@ class Piece {
         bool isTaken(); 
         bool isWhite(); 
         bool hasMoved(); 
-        bool isMoved(); 
+        void isMoved(); 
         void setPiece(bool isWhite); 
 
         static directionInfo getDirectionInfo(const Coords &origin, const Coords &destination); 
+
+        virtual ~Piece(); 
 };
 
 class Bishop : public Piece {
@@ -51,10 +54,12 @@ class Bishop : public Piece {
     public: 
         virtual bool isValidMove(const Coords &origin, const Coords &destination, const Board &board); 
         virtual bool checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board); 
+        virtual std::string toString(); 
         char getSymbol(); 
         Bishop(bool white); 
 
 
+        ~Bishop(); 
 }; 
 
 class Knight : public Piece {
@@ -63,8 +68,11 @@ class Knight : public Piece {
     public: 
         virtual bool isValidMove(const Coords &origin, const Coords &destination, const Board &board); 
         virtual bool checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board); 
+        virtual std::string toString(); 
         char getSymbol(); 
         Knight(bool white); 
+
+        ~Knight(); 
 
 }; 
 
@@ -74,8 +82,11 @@ class Rook : public Piece {
     public: 
         virtual bool isValidMove(const Coords &origin, const Coords &destination, const Board &board); 
         virtual bool checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board); 
+        virtual std::string toString(); 
          char getSymbol(); 
         Rook(bool white); 
+
+        ~Rook(); 
 }; 
 
 class Queen : public Piece {
@@ -84,8 +95,10 @@ class Queen : public Piece {
     public: 
         virtual bool isValidMove(const Coords &origin, const Coords &destination, const Board &board); 
         virtual bool checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board); 
+        virtual std::string toString(); 
          char getSymbol(); 
         Queen(bool white);
+        ~Queen(); 
 }; 
 
 class King : public Piece {
@@ -94,8 +107,10 @@ class King : public Piece {
     public: 
         virtual bool isValidMove(const Coords &origin, const Coords &destination, const Board &board); 
         virtual bool checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board); 
+        virtual std::string toString(); 
          char getSymbol(); 
         King(bool white); 
+        ~King(); 
 
 }; 
 class Pawn : public Piece {
@@ -105,10 +120,11 @@ class Pawn : public Piece {
     public: 
         virtual bool isValidMove(const Coords &origin, const Coords &destination, const Board &board); 
         virtual bool checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board); 
+        virtual std::string toString(); 
          char getSymbol(); 
          bool  canBeEnpassant(); 
          void setEnpassant(bool whether); 
-
         Pawn(bool white); 
+        ~Pawn(); 
 }; 
 #endif
