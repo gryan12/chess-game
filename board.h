@@ -26,9 +26,13 @@ class Board {
         bool submitMove(std::string start, std::string end); 
 
         void resetBoard(); 
+        void setNewPieces(); 
+        void announceMove(const Coords &origin, const Coords &destination); 
 
+        
         int getMoveNumber(); 
 
+        void operator=(Board otherBoard); 
 
         Board(); 
         ~Board();

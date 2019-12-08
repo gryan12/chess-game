@@ -37,6 +37,7 @@ class Piece {
 
         bool isTaken(); 
         bool isWhite(); 
+        bool isBlack(); 
         bool hasMoved(); 
         void isMoved(); 
         void setPiece(bool isWhite); 

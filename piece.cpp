@@ -38,6 +38,9 @@ directionInfo Piece::getDirectionInfo(const Coords &origin, const Coords &destin
 bool Piece::isWhite() {
     return white;
 }
+bool Piece::isBlack() {
+    return !white;
+}
 void Piece::setPiece(bool isWhite) {
     white = isWhite; 
 }
@@ -66,30 +69,36 @@ void Pawn::setEnpassant(bool can) {
 //need to add check for when trying to move a pwn to its backrank
 bool Pawn::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
 
+
+    directionInfo info(getDirectionInfo(origin, destination)); 
+
+
     if (origin.x > BOARD_LENGTH || origin.y > BOARD_LENGTH) {
         return false; 
     }
 
-    //get abs difference
-    int xdif, ydif; 
-    ydif = abs(origin.y - destination.y); 
-    xdif = abs(origin.x - destination.x); 
-
     //if invalid magnitudes
-    if (xdif > 2 || ydif > 1) {
+    if (info.absx > 2 || info.absy > 1) {
         return false; //trying to more than 2 sqaures / not 1 diagonally forwards (for taking)
     }
 
-    if (hasMoved() && xdif == 2) {
+    //check pawns moving in the apprpriate directions
+    if (isWhite() && info.xdir < 0) {
+        return false; 
+    }  
+    else if (isBlack() && info.xdir > 0) {
+        return false; 
+    }
+
+    if (hasMoved() && info.absx == 2) {
         return false;//trying to move forward 2 squares after the first move
     } 
 
     //its here. i am tryng to acess value of anull ponter. 
-    if (ydif > 1 && board.pieceAt(destination) == NULL) {
+    if (info.absy > 1 && board.pieceAt(destination) == NULL) {
         if (!enpassant) {
             return false; //trying to take non-existant piece / own piece
         }
-
         else {
 
         }
@@ -100,13 +109,14 @@ bool Pawn::isValidMove(const Coords &origin, const Coords &destination, const Bo
     }
 
     //if trying to advance, check there is no piece int he way. 
-    //i think i cna leave checking for check in the board class, p sure
-    if (ydif == 0) {
+    if (info.absy == 0) {
 
-        Coords c(origin.x+1, origin.y); 
-
-        if (board.pieceAt(c)) {
-            return false; // piece in the way
+        //if moving two spaces check the intermediate square
+        if (info.absx == 2) {
+            Coords c(origin.x+info.xdir, origin.y); 
+            if (board.pieceAt(c)) {
+                return false; // piece in the way
+            }
         }
 
         if (board.pieceAt(destination)) {
@@ -123,31 +133,19 @@ char Pawn::getSymbol()  {
 //bishop
 bool Bishop::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
 
+    directionInfo info(getDirectionInfo(origin, destination)); 
+
     //if oob
     if (destination.x > BOARD_LENGTH || destination.y > BOARD_LENGTH) {
         return false; 
     }
 
-    //get absolute difference
-    int xdif, ydif; 
-    ydif = abs(origin.y - destination.y); 
-    xdif = abs(origin.x - destination.x); 
-
     //as move diagonally, vector magnitudes must aways be equal. 
     //any square for which this holds true will be on same colord diagonal
-    if (xdif != ydif) {
+    if (info.absx != info.absy) {
+        
         return false; 
     }
-
-    //get actual difference;
-    int x, y; 
-    x = origin.x - destination.x; 
-    y = origin.y - destination.y;
-
-
-    //the directions, either positive or negative 1
-    int xdir = xdif / x; 
-    int ydir = ydif / y; 
 
     //trying to take same color piece
     if (board.pieceAt(destination) && sameColor(board.pieceAt(destination))) {
@@ -155,14 +153,17 @@ bool Bishop::isValidMove(const Coords &origin, const Coords &destination, const 
     }
 
     Coords intermediateSq(origin.x, origin.y); 
+
+    intermediateSq.x += info.xdir; 
+    intermediateSq.y += info.ydir; 
     while (intermediateSq != destination) {
-        intermediateSq.x += xdir; 
-        intermediateSq.y += ydir; 
 
         //there is piece in the way
         if (board.pieceAt(intermediateSq)) {
             return false; 
         }
+        intermediateSq.x += info.xdir; 
+        intermediateSq.y += info.ydir; 
     }
 
     return true; 
@@ -256,21 +257,7 @@ bool Queen::isValidMove(const Coords &origin, const Coords &destination, const B
         return false; 
     }
 
-    //get abs differences
-    int xdif, ydif; 
-    xdif = abs(origin.x - destination.x); 
-    ydif = abs(origin.y - destination.y); 
-
-    //get actual difference;
-    int x, y; 
-    x = origin.x - destination.x; 
-    y = origin.y - destination.y;
-
-    //directions - warning, could be 0
-    int xdir, ydir; 
-    xdir = (x==0) ? 0 : xdif / x; 
-    ydir = (y==0) ? 0 : ydif / y; 
-
+    directionInfo info(getDirectionInfo(origin, destination)); 
 
     //if trying to take own piece
     if (board.pieceAt(destination)) {
@@ -282,10 +269,10 @@ bool Queen::isValidMove(const Coords &origin, const Coords &destination, const B
     Coords intermediateSq (origin.x, origin.y); 
 
     //if moving like a bishop
-    if (xdif == ydif) {
+    if (info.absx == info.absy) {
         while (intermediateSq != destination) {
-            intermediateSq.x += xdir; 
-            intermediateSq.y += ydir; 
+            intermediateSq.x += info.xdir; 
+            intermediateSq.y += info.ydir; 
 
             //there is piece in the way
             if (board.pieceAt(intermediateSq)) {
@@ -294,10 +281,10 @@ bool Queen::isValidMove(const Coords &origin, const Coords &destination, const B
         }
     }
     //else if moving like rook
-    else if ((xdif && !ydif) || (ydif && !xdif)) {
+    else if ((info.absx && !info.absy) || (info.absy && !info.absx)) {
         while (intermediateSq != destination) {
-            intermediateSq.x += xdir; 
-            intermediateSq.y += ydir; 
+            intermediateSq.x += info.xdir; 
+            intermediateSq.y += info.ydir; 
             if (board.pieceAt(intermediateSq)) {
                 return false; 
             }

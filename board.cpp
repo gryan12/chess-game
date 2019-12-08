@@ -1,10 +1,11 @@
 #include "board.h"
+#include "utils.h" 
 #include <iomanip>
 #include <cstddef> 
 #include <iostream> 
 #include <string> 
 
-Board setNewpieces() {
+void Board::setNewPieces() {
 
     for (int i = 0; i < BOARD_LENGTH; i++) {
         boardState[i] = new Piece*[BOARD_LENGTH]; 
@@ -68,69 +69,11 @@ Board setNewpieces() {
 
 
 Board::Board()  {
-
     //init
     boardState = new Piece**[BOARD_LENGTH]; 
 
-    //init rows of poitners 
-    for (int i = 0; i < BOARD_LENGTH; i++) {
-        boardState[i] = new Piece*[BOARD_LENGTH]; 
-    }
+    setNewPieces(); 
 
-    for (int i = 0; i < BOARD_LENGTH; i++) {
-        for (int j = 0; j < BOARD_LENGTH; j++) {
-
-            boardState[i][j] = NULL; 
-
-            if (i == 1) {
-                boardState[i][j] = new Pawn(true); 
-            }  
-
-            if (i == 6) {
-                boardState[i][j] = new Pawn(false); 
-            }
-
-            if (i == 0) {
-                if (j == 0 || j == 7) {
-                    boardState[i][j] = new Rook(true); 
-                }
-
-                if (j == 1 || j == 6) {
-                    boardState[i][j] = new Knight(true); 
-                }
-
-                if (j == 2 || j == 5) {
-                    boardState[i][j] = new Bishop(true); 
-                }
-                if (j == 3) {
-                    boardState[i][j] = new Queen(true); 
-                }
-                if (j == 4) {
-                    boardState[i][j] = new King(true); 
-                }
-            }
-
-            if (i == 7) {
-                if (j == 0 || j == 7) {
-                    boardState[i][j] = new Rook(false); 
-                }
-
-                if (j == 1 || j == 6) {
-                    boardState[i][j] = new Knight(false); 
-                }
-
-                if (j == 2 || j == 5) {
-                    boardState[i][j] = new Bishop(false); 
-                }
-                if (j == 3) {
-                    boardState[i][j] = new Queen(false); 
-                }
-                if (j == 4) {
-                    boardState[i][j] = new King(false); 
-                }
-            }
-        }
-    }
 }
 
 Board::~Board() {
@@ -174,13 +117,64 @@ Piece* Board::pieceAt(int x, int y) const {
 
 
 
+void Board::announceMove(const Coords &origin, const Coords &destination) {
+    std::string output; 
+
+    output = pieceAt(destination)->toString(); 
+
+    std::cout << output << " has moved from " 
+              << origin.toString() << " to " << destination.toString() << "\n" ; 
+}
+
+bool Board::submitMove(std::string start, std::string end) {
+    Coords origin(start); 
+    Coords destination(end); 
+
+    //need details about the type of move. if its check, if a piece
+    //has been taken, etc
+    if (pieceAt(origin)) {
+
+        if (movePiece(origin, destination)) {
+            announceMove(origin, destination); 
+            return true; 
+        } else {
+            std::cout << pieceAt(origin)->toString() << " can not move to : " << destination.toString() << "!"; 
+            return false; 
+        }
+
+    } else {
+        alert(NO_PIECE, origin.toString()); 
+    }
+
+    return false; 
+}
+
 bool Board::movePiece(const Coords &origin, const Coords &destination) {
 
     if (pieceAt(origin) == NULL) {
         return false; 
     }
 
-    std::cout << " \bPieceat Origin is " << pieceAt(origin)->getSymbol() << "\n"; 
+    std::cout << "Attempting to move piece " << pieceAt(origin)->getSymbol() << " from " << origin.toString() << " to " << destination.toString() << "\n"; 
+
+    if ((pieceAt(origin)->isWhite() && moveNumber%2 != 0) || (pieceAt(origin)->isBlack() && moveNumber%2 ==0))  {
+
+        std::string color; 
+        if (pieceAt(origin)->isWhite()) {
+            color = "white"; 
+        } else {
+            color = "black"; 
+        }
+        std::cout << "\nIN WEIRD PART. PIECE IS : " << color << " AND MOVENUMBER IS: " << moveNumber << " AND MOVENUMBER % 2 S: " << moveNumber%2 << "\n"; 
+
+        if (pieceAt(origin)->isWhite()) {
+            alert(NOT_WHITES_TURN); 
+        } else {
+            alert(NOT_BLACKS_TURN); 
+        }
+        return false; 
+    }
+
 
     if (pieceAt(origin)->isValidMove(origin, destination, *this)) {
 
@@ -306,36 +300,6 @@ bool Board::isCheckmate(bool whiteKing) {
 }
 
 
-bool Board::submitMove(std::string start, std::string end) {
-    Coords origin(start); 
-    Coords destination(end); 
-
-    std::cout <<"\nHello! origin: " << origin.x << ":" << origin.y
-                << " destination: " << destination.x << ":" << destination.y << "\n"; 
-    //need details about the type of move. if its check, if a piece
-    //has been taken, etc
-    if (pieceAt(origin)) {
-        std::cout <<"\nIs piece at origin.\n";
-
-        if ((pieceAt(origin)->isWhite() && moveNumber%2 != 0) || (!pieceAt(origin)->isWhite() && moveNumber%2 ==0))  {
-            std::string color; 
-            pieceAt(origin)->isWhite() ? color = "white's" : color = "black's"; 
-            std::cout << "It is not " << color << " turn to move."; 
-            return false; 
-        }
-
-
-        if (movePiece(origin, destination)) {
-            std::string output; 
-            std::cout <<"in submit\n"; 
-            output = pieceAt(destination)->toString(); 
-            std::cout << output << " has moved from " 
-                      << start << " to " << end; 
-            return true; 
-        }
-    }
-    return false; 
-}
 
 int Board::getMoveNumber() {
     return moveNumber; 
@@ -343,6 +307,51 @@ int Board::getMoveNumber() {
 
 
 void Board::resetBoard() {
+    std::cout  <<"\nIn reset\n"; 
 
+    //remove all pieces
+    for (int i = 0; i < BOARD_LENGTH; i++) {
+        for (int j = 0; j < BOARD_LENGTH; j++) {
+
+            if (boardState[i][j] != NULL) {
+                delete boardState[i][j]; 
+            }
+        }
+    }
+
+    std::cout << "\nHello\n"; 
+    //delete peices off the board
+    for (auto piece: takenPieces) {
+        delete piece; 
+    }
+
+    //starting position
+    setNewPieces(); 
+    //reset move number; 
+    moveNumber = 0; 
 }
+
+
+//copy assgnment
+//void Board::operator=(Board otherBoard) {
+//
+//    //deallocate memory for the pieces
+//    for (int i = 0; i < BOARD_LENGTH; i++) {
+//        delete[] boardState[i]; 
+//    }
+//    delete[] boardState; 
+//
+//    //delete peices off the board
+//    for (auto piece: takenPieces) {
+//        delete piece; 
+//    }
+//
+//    boardState = otherBoard.boardState; 
+//    takenPieces = otherBoard.takenPieces; 
+//    moveNumber = otherBoard.moveNumber; 
+//    
+//}
+
+
+
 
