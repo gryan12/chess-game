@@ -5,7 +5,6 @@
 #include <string> 
 #include <iostream> 
 
-
 enum moveType {
     NOT_WHITES_TURN, 
     NOT_BLACKS_TURN, 
