@@ -1,10 +1,17 @@
-#include "board.h"
+#include "chessboard.h"
 #include <iostream> 
 #include <stdlib.h>
 #include "piece.h"
 
-//piece
-
+/* defining piece and its derived classes methods. 
+ * file is ordered by base class virtual functions as follows: 
+ *      Piece methods
+ *      isValidMove implementation
+ *      checkingKing implementatino
+ *      getSymbol implementation
+ *      constructors
+ *      destructors
+*     */
 
 
 bool outOfBounds(const Coords &destination) {
@@ -14,6 +21,7 @@ bool outOfBounds(const Coords &destination) {
     return false; 
 }
 
+//START piece 
 directionInfo Piece::getDirectionInfo(const Coords &origin, const Coords &destination) {
 
     //get actual difference;
@@ -53,21 +61,22 @@ void Piece::isMoved() {
     moved = true; 
 }
 
-bool Pawn::canBeEnpassant() {
-    return enpassant; 
-}
-
 bool Piece::sameColor(Piece *piece) {
     return (piece->isWhite() == isWhite()); 
+}
+
+//END piece
+
+bool Pawn::canBeEnpassant() {
+    return enpassant; 
 }
 
 void Pawn::setEnpassant(bool can) {
     enpassant = can; 
 }
-//pawn
-//this... this should be static, shouldn't it?
-//need to add check for when trying to move a pwn to its backrank
-bool Pawn::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
+
+
+bool Pawn::isValidMove(const Coords &origin, const Coords &destination, const ChessBoard &board) {
 
     directionInfo info(getDirectionInfo(origin, destination)); 
 
@@ -92,13 +101,10 @@ bool Pawn::isValidMove(const Coords &origin, const Coords &destination, const Bo
         return false;//trying to move forward 2 squares after the first move
     } 
 
-    //its here. i am tryng to acess value of anull ponter. 
+    
     if (info.absy > 1 && board.pieceAt(destination) == NULL) {
         if (!enpassant) {
             return false; //trying to take non-existant piece / own piece
-        }
-        else {
-
         }
     } 
 
@@ -129,19 +135,16 @@ char Pawn::getSymbol()  {
 }
 
 //bishop
-bool Bishop::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
+bool Bishop::isValidMove(const Coords &origin, const Coords &destination, const ChessBoard &board) {
 
     directionInfo info(getDirectionInfo(origin, destination)); 
 
-    //if oob
-    if (destination.x > BOARD_LENGTH || destination.y > BOARD_LENGTH) {
+    if (outOfBounds(destination)) {
         return false; 
     }
 
     //as move diagonally, vector magnitudes must aways be equal. 
-    //any square for which this holds true will be on same colord diagonal
     if (info.absx != info.absy) {
-        
         return false; 
     }
 
@@ -154,8 +157,8 @@ bool Bishop::isValidMove(const Coords &origin, const Coords &destination, const 
 
     intermediateSq.x += info.xdir; 
     intermediateSq.y += info.ydir; 
-    while (intermediateSq != destination) {
 
+    while (intermediateSq != destination) {
         //there is piece in the way
         if (board.pieceAt(intermediateSq)) {
             return false; 
@@ -170,23 +173,21 @@ char Bishop::getSymbol()  {
     return symbol;
 }
 //knight
-bool Knight::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
+bool Knight::isValidMove(const Coords &origin, const Coords &destination, const ChessBoard &board) {
 
    if (destination.x > BOARD_LENGTH || destination.y > BOARD_LENGTH) {
        return false; 
    } 
-
 
     //get abs differences
     int xdif, ydif; 
     xdif = abs(origin.x - destination.x); 
     ydif = abs(origin.y - destination.y); 
 
-    //if same-colord piece at destination
+    //if own piece at destination
     if (board.pieceAt(destination) && sameColor(board.pieceAt(destination))) {
         return false; 
     }
-
     if ((xdif == 2 && ydif == 1) || (xdif == 1 && ydif == 2)) {
         return true; 
     }
@@ -197,7 +198,7 @@ char Knight::getSymbol()  {
     return symbol;
 }
 //rook
-bool Rook::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
+bool Rook::isValidMove(const Coords &origin, const Coords &destination, const ChessBoard &board) {
 
    if (destination.x > BOARD_LENGTH || destination.y > BOARD_LENGTH) {
        return false; 
@@ -209,11 +210,12 @@ bool Rook::isValidMove(const Coords &origin, const Coords &destination, const Bo
        return false; 
    }
 
+   //must only be a change in either row or col - not both 
    if (info.absx && info.absy) {
        return false; 
    }
 
-    //only one of xdir or ydir should be non-zero btw
+   //check intermediate squares for obstruction
     Coords intermediateSq(origin.x, origin.y); 
     intermediateSq.x += info.xdir; 
     intermediateSq.y += info.ydir; 
@@ -232,14 +234,13 @@ char Rook::getSymbol()  {
     return symbol;
 }
 //queen
-bool Queen::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
+bool Queen::isValidMove(const Coords &origin, const Coords &destination, const ChessBoard &board) {
 
     if (outOfBounds(destination)) {
         return false; 
     }
 
     directionInfo info(getDirectionInfo(origin, destination)); 
-
 
     //if trying to take own piece
     if (board.pieceAt(destination)) {
@@ -249,21 +250,19 @@ bool Queen::isValidMove(const Coords &origin, const Coords &destination, const B
     }
 
     bool likeRook = true; 
-
-    //if 
     if (info.absx && info.absy) {
         likeRook = false; 
+        //if not like a rook, must be like a bishop
         if (info.absx != info.absy) {
             return false; 
        }
     }
 
-
     Coords intermediateSq (origin.x, origin.y); 
 
+    //check obstructions
     //if moving like a bishop
     if (!likeRook) {
-
         intermediateSq.x += info.xdir; 
         intermediateSq.y += info.ydir; 
         while (intermediateSq != destination) {
@@ -278,8 +277,6 @@ bool Queen::isValidMove(const Coords &origin, const Coords &destination, const B
     }
     //else if moving like rook
     else if (likeRook) {
-
-
         intermediateSq.x += info.xdir; 
         intermediateSq.y += info.ydir; 
         while (intermediateSq != destination) {
@@ -298,7 +295,8 @@ char Queen::getSymbol()  {
 }
 
 //king
-bool King::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
+//NB: this function gives no consideration to king safety
+bool King::isValidMove(const Coords &origin, const Coords &destination, const ChessBoard &board) {
 
     if (outOfBounds(destination)) {
         return false; 
@@ -306,10 +304,12 @@ bool King::isValidMove(const Coords &origin, const Coords &destination, const Bo
 
     directionInfo info(getDirectionInfo(origin, destination)); 
 
+    //kings can only mv 1 square
     if (info.absx > 1 || info.absy > 1) {
         return false; 
     }
 
+    //cant take own piece
     if (board.pieceAt(destination) && sameColor(board.pieceAt(destination))) {
         return false; 
     }
@@ -364,22 +364,23 @@ char King::getSymbol()  {
     return symbol;
 }
 
-bool Pawn::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+bool Pawn::checkingKing(const Coords &piece, const Coords &kingLocation, const ChessBoard &board) {
+
     if (outOfBounds(kingLocation)) {
         return false; 
     }
     directionInfo info (getDirectionInfo(piece, kingLocation)); 
 
-    //if 1-to-1 
+    //pawns only threaten diagonally in respective direction
     if (info.absy == 1 && info.absx == 1 ) {
 
-        //if white, pawns threaten forward
+        //if white, pawns threaten 'forward'
         if (board.pieceAt(piece)->isWhite()) {
             if (info.xdir > 0) {
                 return true; 
             }
         } else {
-            //if black, pawns threaten backward
+            //if black, pawns threaten 'backward'
             if (info.xdir < 0) {
                 return true; 
             }
@@ -388,11 +389,12 @@ bool Pawn::checkingKing(const Coords &piece, const Coords &kingLocation, const B
 
     return false; 
 }
-bool Bishop::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+bool Bishop::checkingKing(const Coords &piece, const Coords &kingLocation, const ChessBoard &board) {
 
     if (outOfBounds(kingLocation)) {
         return false; 
     }
+
     directionInfo info (getDirectionInfo(piece, kingLocation)); 
 
     //if not on same diagonal
@@ -401,7 +403,6 @@ bool Bishop::checkingKing(const Coords &piece, const Coords &kingLocation, const
     }
 
     //if piece between bishop and king
-
     Coords intermediateSq(piece.x, piece.y); 
 
         intermediateSq.x += info.xdir; 
@@ -415,11 +416,9 @@ bool Bishop::checkingKing(const Coords &piece, const Coords &kingLocation, const
         intermediateSq.x += info.xdir; 
         intermediateSq.y += info.ydir; 
     }
-
-
     return true; 
 }
-bool Rook::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+bool Rook::checkingKing(const Coords &piece, const Coords &kingLocation, const ChessBoard &board) {
 
     if (outOfBounds(kingLocation)) {
         return false; 
@@ -430,7 +429,6 @@ bool Rook::checkingKing(const Coords &piece, const Coords &kingLocation, const B
     if (info.ydir && info.xdir) {
         return false; 
     }
-
 
     //if on a different row 
     if (info.ydir) {
@@ -447,19 +445,20 @@ bool Rook::checkingKing(const Coords &piece, const Coords &kingLocation, const B
 
     //only one of xdir or ydir should be non-zero, just quicker this way
     Coords intermediateSq(piece.x, piece.y); 
+    intermediateSq.x += info.xdir; 
+    intermediateSq.y += info.ydir; 
     while (intermediateSq != kingLocation) {
-        intermediateSq.x += info.xdir; 
-        intermediateSq.y += info.ydir; 
         if (board.pieceAt(intermediateSq)) {
             return false; 
         }
+        intermediateSq.x += info.xdir; 
+        intermediateSq.y += info.ydir; 
     }
-
     //if only xdir or ydir, and if no piece in the way, opposing king in check
     return true; 
 }
 
-bool Knight::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+bool Knight::checkingKing(const Coords &piece, const Coords &kingLocation, const ChessBoard &board) {
 
     if (outOfBounds(kingLocation)) {
         return false; 
@@ -475,11 +474,12 @@ bool Knight::checkingKing(const Coords &piece, const Coords &kingLocation, const
 }
 
 
-bool Queen::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+bool Queen::checkingKing(const Coords &piece, const Coords &kingLocation, const ChessBoard &board) {
 
     if (outOfBounds(kingLocation)) {
         return false; 
     }
+
     directionInfo info(getDirectionInfo(piece, kingLocation)); 
 
     bool likeRook = true; 
@@ -507,7 +507,6 @@ bool Queen::checkingKing(const Coords &piece, const Coords &kingLocation, const 
                 return false; 
             }
         }
-
         //only one of xdir or ydir should be non-zero, just quicker this way
         Coords intermediateSq(piece.x, piece.y); 
             intermediateSq.x += info.xdir; 
@@ -519,7 +518,6 @@ bool Queen::checkingKing(const Coords &piece, const Coords &kingLocation, const 
             intermediateSq.x += info.xdir; 
             intermediateSq.y += info.ydir; 
         }
-
     } else {
 
         Coords intermediateSq(piece.x, piece.y); 
@@ -535,7 +533,6 @@ bool Queen::checkingKing(const Coords &piece, const Coords &kingLocation, const 
             intermediateSq.x += info.xdir; 
             intermediateSq.y += info.ydir; 
         }
-
     }
 
     return true; 
@@ -543,7 +540,7 @@ bool Queen::checkingKing(const Coords &piece, const Coords &kingLocation, const 
 
 //obviously not possible for a king to check a king
 //but check needed to make sure that kings are not being moved next to each other
-bool King::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+bool King::checkingKing(const Coords &piece, const Coords &kingLocation, const ChessBoard &board) {
     if (outOfBounds(kingLocation)) {
         return false; 
     }
@@ -631,7 +628,6 @@ std::string King::toString() {
     return pawnString; 
 
 }
-
 
 Knight::Knight(bool white_) {
     setPiece(white_); 

@@ -1,11 +1,9 @@
-
 #ifndef UTILS_H
 #define UTILS_H
 
 #include <map> 
 #include <string> 
 #include <iostream> 
-
 
 enum moveType {
     NOT_WHITES_TURN, 
