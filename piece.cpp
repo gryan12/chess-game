@@ -259,6 +259,7 @@ bool Queen::isValidMove(const Coords &origin, const Coords &destination, const B
 
     directionInfo info(getDirectionInfo(origin, destination)); 
 
+
     //if trying to take own piece
     if (board.pieceAt(destination)) {
         if (sameColor(board.pieceAt(destination))) {
@@ -266,34 +267,47 @@ bool Queen::isValidMove(const Coords &origin, const Coords &destination, const B
         }
     }
 
+    bool likeRook = true; 
+
+    //if 
+    if (info.absx && info.absy) {
+        likeRook = false; 
+        if (info.absx != info.absy) {
+            return false; 
+       }
+    }
+
+
     Coords intermediateSq (origin.x, origin.y); 
 
     //if moving like a bishop
-    if (info.absx == info.absy) {
-        while (intermediateSq != destination) {
+    if (!likeRook) {
+
             intermediateSq.x += info.xdir; 
             intermediateSq.y += info.ydir; 
+        while (intermediateSq != destination) {
 
             //there is piece in the way
             if (board.pieceAt(intermediateSq)) {
                 return false; 
             }
+            intermediateSq.x += info.xdir; 
+            intermediateSq.y += info.ydir; 
         }
     }
     //else if moving like rook
-    else if ((info.absx && !info.absy) || (info.absy && !info.absx)) {
-        while (intermediateSq != destination) {
+    else if (likeRook) {
+
+
             intermediateSq.x += info.xdir; 
             intermediateSq.y += info.ydir; 
+        while (intermediateSq != destination) {
             if (board.pieceAt(intermediateSq)) {
                 return false; 
             }
+            intermediateSq.x += info.xdir; 
+            intermediateSq.y += info.ydir; 
         }
-    }
-
-    //if moving like neither a bishop or a rook
-    else {
-        return false; 
     }
 
     return true; 
@@ -427,6 +441,20 @@ bool Rook::checkingKing(const Coords &piece, const Coords &kingLocation, const B
         return false; 
     }
 
+
+    //if on a different row 
+    if (info.ydir) {
+        if (kingLocation.x != piece.x) {
+            return false; 
+        }
+    }
+    //if on a different file
+    if(info.xdir) {
+        if (kingLocation.y != piece.y) {
+            return false; 
+        }
+    }
+
     //only one of xdir or ydir should be non-zero, just quicker this way
     Coords intermediateSq(piece.x, piece.y); 
     while (intermediateSq != kingLocation) {
@@ -455,24 +483,62 @@ bool Knight::checkingKing(const Coords &piece, const Coords &kingLocation, const
 
 
 bool Queen::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
-    Piece *temp; 
-    Rook* rook; 
-    Bishop* bishop; 
 
     directionInfo info(getDirectionInfo(piece, kingLocation)); 
 
-    temp = board.pieceAt(piece); 
-    
-    rook = dynamic_cast<Rook*> (temp); 
-    if (rook->checkingKing(piece, kingLocation, board)) {
-        return true; 
+    bool likeRook = true; 
+
+    //if on different file AND col
+    if (info.ydir && info.xdir) {
+        likeRook = false; 
+        //if on same diagonal
+        if (info.absx != info.absy) {
+            return false; 
+        }
     }
 
-    bishop = dynamic_cast<Bishop*>(temp); 
-    if (bishop->checkingKing(piece, kingLocation, board)) {
-        return true; 
+    if (likeRook) {
+
+        //if on a different row 
+        if (info.ydir) {
+            if (kingLocation.x != piece.x) {
+                return false; 
+            }
+        }
+        //if on a different file
+        if(info.xdir) {
+            if (kingLocation.y != piece.y) {
+                return false; 
+            }
+        }
+
+        //only one of xdir or ydir should be non-zero, just quicker this way
+        Coords intermediateSq(piece.x, piece.y); 
+        while (intermediateSq != kingLocation) {
+            intermediateSq.x += info.xdir; 
+            intermediateSq.y += info.ydir; 
+            if (board.pieceAt(intermediateSq)) {
+                return false; 
+            }
+        }
+
+    } else {
+
+        Coords intermediateSq(piece.x, piece.y); 
+
+        while (intermediateSq != kingLocation) {
+            intermediateSq.x += info.xdir; 
+            intermediateSq.y += info.ydir; 
+
+            //there is piece in the way
+            if (board.pieceAt(intermediateSq)) {
+                return false; 
+            }
+        }
+
     }
-    return false; 
+
+    return true; 
 }
 
 //obviously not possible for a king to check a king

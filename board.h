@@ -13,6 +13,12 @@ class Board {
         Piece ***boardState; 
         std::vector<Piece*> takenPieces; 
         int moveNumber = 0; 
+
+
+
+        bool whitesTurn(); 
+
+
     public:
         bool movePiece(const Coords &origin, const Coords &destination); 
         void printBoard(); 
@@ -29,6 +35,8 @@ class Board {
         void setNewPieces(); 
         void announceMove(const Coords &origin, const Coords &destination); 
 
+        bool wouldBeCheck(const Coords &origin, const Coords &destination, bool whiteKing); 
+        
         
         int getMoveNumber(); 
 

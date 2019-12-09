@@ -133,7 +133,6 @@ bool Board::submitMove(std::string start, std::string end) {
     //need details about the type of move. if its check, if a piece
     //has been taken, etc
     if (pieceAt(origin)) {
-
         if (movePiece(origin, destination)) {
             announceMove(origin, destination); 
             return true; 
@@ -155,17 +154,8 @@ bool Board::movePiece(const Coords &origin, const Coords &destination) {
         return false; 
     }
 
-    std::cout << "Attempting to move piece " << pieceAt(origin)->getSymbol() << " from " << origin.toString() << " to " << destination.toString() << "\n"; 
 
     if ((pieceAt(origin)->isWhite() && moveNumber%2 != 0) || (pieceAt(origin)->isBlack() && moveNumber%2 ==0))  {
-
-        std::string color; 
-        if (pieceAt(origin)->isWhite()) {
-            color = "white"; 
-        } else {
-            color = "black"; 
-        }
-        std::cout << "\nIN WEIRD PART. PIECE IS : " << color << " AND MOVENUMBER IS: " << moveNumber << " AND MOVENUMBER % 2 S: " << moveNumber%2 << "\n"; 
 
         if (pieceAt(origin)->isWhite()) {
             alert(NOT_WHITES_TURN); 
@@ -175,12 +165,20 @@ bool Board::movePiece(const Coords &origin, const Coords &destination) {
         return false; 
     }
 
-
     if (pieceAt(origin)->isValidMove(origin, destination, *this)) {
 
         if (pieceAt(destination)) {
             takenPieces.push_back(pieceAt(destination)); 
         }
+        //here do the check check
+        
+        if (wouldBeCheck(origin, destination, pieceAt(origin)->isWhite())) {
+            std::string color; 
+            pieceAt(origin)->isWhite() ? color = "White" : color = "Black"; 
+            alert(CHECK, " still", color); 
+            return false; 
+        }
+
         boardState[destination.x][destination.y] = boardState[origin.x][origin.y]; 
         boardState[origin.x][origin.y] = NULL; 
         moveNumber++; 
@@ -235,6 +233,42 @@ bool Board::inCheck(const Coords &kingLocation, bool whiteKing) {
         }
     }
     return false; 
+}
+
+//bool Board::makeMove(const Coords &origin, const Coords &destination, bool whiteKing) {
+//    takenPieces.push_back(pieceAt(destination)); 
+//    boardState[destination.x][destination.y] = pieceAt(origin); 
+//    boardstate[origin.x][origin.y] = NULL;
+//}
+
+
+//for same color as those moving. move must
+bool Board::wouldBeCheck(const Coords &origin, const Coords &destination, bool whiteKing) {
+    bool wouldBeCheck = false; 
+
+    takenPieces.push_back(pieceAt(destination)); 
+    boardState[destination.x][destination.y] = pieceAt(origin); 
+    boardState[origin.x][origin.y] = NULL;
+
+    Coords kingLocation = getKingSq(whiteKing); 
+
+    for (int i = 0; i < BOARD_LENGTH; i++) {
+        for (int j = 0; j < BOARD_LENGTH; j++) {
+            //if piece present at coords which is of opposite color
+            if ((pieceAt(i,j) != NULL) && (pieceAt(i, j)->isWhite() != whiteKing)) {
+                Coords currentSq(i, j); 
+                if (pieceAt(i, j)->checkingKing(currentSq, kingLocation, *this)) {
+                    wouldBeCheck = true; 
+                }
+            }
+        }
+    }
+
+    boardState[origin.x][origin.y] = boardState[destination.x][destination.y]; 
+    boardState[destination.x][destination.y] = takenPieces.back(); 
+    takenPieces.pop_back(); 
+
+    return wouldBeCheck; 
 }
 
 //override inCheck to also take a Coords. 
@@ -329,6 +363,10 @@ void Board::resetBoard() {
     setNewPieces(); 
     //reset move number; 
     moveNumber = 0; 
+}
+
+bool Board::whitesTurn() {
+    return (!moveNumber%2); 
 }
 
 
