@@ -31,12 +31,13 @@ class Board {
         Coords getKingSq(bool white); 
         bool submitMove(std::string start, std::string end); 
 
+        bool hasValidMove(bool white); 
+
         void resetBoard(); 
         void setNewPieces(); 
         void announceMove(const Coords &origin, const Coords &destination); 
 
         bool wouldBeCheck(const Coords &origin, const Coords &destination, bool whiteKing); 
-        
         
         int getMoveNumber(); 
 

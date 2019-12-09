@@ -134,7 +134,19 @@ bool Board::submitMove(std::string start, std::string end) {
     //has been taken, etc
     if (pieceAt(origin)) {
         if (movePiece(origin, destination)) {
-            announceMove(origin, destination); 
+
+        announceMove(origin, destination); 
+
+        std::string color;
+        bool white = !pieceAt(destination)->isWhite(); 
+        pieceAt(destination)->isWhite() ? color = "Black" : color = "White"; 
+        if (inCheck(white)) {
+            if (isCheckmate(white)) {
+                alert(CHECKMATE, "", color); 
+            } else {
+                alert(CHECK, "", color); 
+            }
+        }
             return true; 
         } else {
             std::cout << pieceAt(origin)->toString() << " can not move to : " << destination.toString() << "!"; 
@@ -172,8 +184,8 @@ bool Board::movePiece(const Coords &origin, const Coords &destination) {
         }
         //here do the check check
         
+        std::string color; 
         if (wouldBeCheck(origin, destination, pieceAt(origin)->isWhite())) {
-            std::string color; 
             pieceAt(origin)->isWhite() ? color = "White" : color = "Black"; 
             alert(CHECK, " still", color); 
             return false; 
@@ -182,6 +194,16 @@ bool Board::movePiece(const Coords &origin, const Coords &destination) {
         boardState[destination.x][destination.y] = boardState[origin.x][origin.y]; 
         boardState[origin.x][origin.y] = NULL; 
         moveNumber++; 
+
+        //bool white = !pieceAt(destination)->isWhite(); 
+       // pieceAt(destination)->isWhite() ? color = "Black" : color = "White"; 
+       // if (inCheck(white)) {
+       //     if (isCheckmate(white)) {
+       //         alert(CHECKMATE, "", color); 
+       //     }
+       //     alert(CHECK, "", color); 
+       // }
+
         return true; 
     }
     return false; 
@@ -205,12 +227,12 @@ Coords Board::getKingSq(bool white) {
 }
 
 bool Board::inCheck(bool whiteKing) {
+    Coords kingSq(getKingSq(whiteKing)); 
     for (int i = 0; i < BOARD_LENGTH; i++) {
         for (int j = 0; j < BOARD_LENGTH; j++) {
             //if piece present at coords which is of opposite color
             if ((pieceAt(i,j) != NULL) && (pieceAt(i, j)->isWhite() != whiteKing)) {
                 Coords currentSq(i, j); 
-                Coords kingSq(getKingSq(whiteKing)); 
                 if (pieceAt(i, j)->checkingKing(currentSq, kingSq, *this)) {
                     return true; 
                 }
@@ -244,6 +266,13 @@ bool Board::inCheck(const Coords &kingLocation, bool whiteKing) {
 
 //for same color as those moving. move must
 bool Board::wouldBeCheck(const Coords &origin, const Coords &destination, bool whiteKing) {
+
+
+    if ((destination.x > 7 || destination.x < 0) || (destination.y > 7 || destination.y < 0)) {
+        return false; 
+    }
+
+
     bool wouldBeCheck = false; 
 
     takenPieces.push_back(pieceAt(destination)); 
@@ -276,57 +305,14 @@ bool Board::wouldBeCheck(const Coords &origin, const Coords &destination, bool w
 //messy but would be: if valid move (for every single-squared difference) then
 //check if (would be) check. if true for every square then return cmate
 bool Board::isCheckmate(bool whiteKing) {
-    King tempKing(whiteKing); 
+
     Coords kingSq(getKingSq(whiteKing)); 
     
     if (!inCheck(whiteKing)) {
         return false; 
     }
 
-    //going methodically through every space near the king. 
-    Coords tempSq(kingSq); 
-
-    //placeholder, v ugly
-
-    //vertical mvt
-    tempSq.x += 1; 
-    if(tempKing.isValidMove(kingSq, tempSq, *this)) {
-        return false; 
-    }
-    tempSq.x -= 2; 
-    if(tempKing.isValidMove(kingSq, tempSq, *this)) {
-        return false; 
-    }
-    //horizontal mvt; 
-    tempSq.x += 1; 
-    tempSq.y += 1;
-    if(tempKing.isValidMove(kingSq, tempSq, *this)) {
-        return false; 
-    }
-    tempSq.y -= 2;
-    if(tempKing.isValidMove(kingSq, tempSq, *this)) {
-        return false; 
-    }
-
-    //lower diagonal mvt
-    tempSq.x -=1; 
-    if(tempKing.isValidMove(kingSq, tempSq, *this)) {
-        return false; 
-    }
-
-    tempSq.x +=2; 
-    if(tempKing.isValidMove(kingSq, tempSq, *this)) {
-        return false; 
-    }
-
-    //upper diagonal mvt
-    tempSq.y +=2; 
-    if(tempKing.isValidMove(kingSq, tempSq, *this)) {
-        return false; 
-    }
-
-    tempSq.y -=2; 
-    if(tempKing.isValidMove(kingSq, tempSq, *this)) {
+    if (hasValidMove(whiteKing)) {
         return false; 
     }
 
@@ -369,6 +355,32 @@ bool Board::whitesTurn() {
     return (!moveNumber%2); 
 }
 
+
+bool Board::hasValidMove(bool white) {
+    for (int i = 0; i < BOARD_LENGTH; i++) {
+        for (int j = 0; j < BOARD_LENGTH; j++) {
+            if (pieceAt(i,j) && (pieceAt(i, j)->isWhite() == white)) {
+                Coords origin(i,j); 
+
+                for (int m = 0; m < BOARD_LENGTH; m++) {
+                    for (int n = 0; n < BOARD_LENGTH; n++) {
+                        Coords destination(m, n); 
+                        if (pieceAt(i,j)->isValidMove(origin, destination, *this)) {
+                            if (!wouldBeCheck(origin, destination, white)) {
+                                //std::cout <<"\nValid move found, moving: " << pieceAt(origin)->getSymbol() << " at " << origin.toString() << " to: " << destination.toString() << "\n"; 
+                                return true; 
+                            }
+
+                        }
+
+                    }
+                }
+
+            }
+        }
+    }
+    return false; 
+}
 
 //copy assgnment
 //void Board::operator=(Board otherBoard) {

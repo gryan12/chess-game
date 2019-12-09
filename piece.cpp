@@ -69,16 +69,14 @@ void Pawn::setEnpassant(bool can) {
 //need to add check for when trying to move a pwn to its backrank
 bool Pawn::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
 
-
     directionInfo info(getDirectionInfo(origin, destination)); 
-
 
     if (origin.x > BOARD_LENGTH || origin.y > BOARD_LENGTH) {
         return false; 
     }
 
     //if invalid magnitudes
-    if (info.absx > 2 || info.absy > 1) {
+    if ((info.absx > 2 || info.absy > 1)|| (info.absy == 1 && info.absx != 1)) {
         return false; //trying to more than 2 sqaures / not 1 diagonally forwards (for taking)
     }
 
@@ -200,34 +198,16 @@ char Knight::getSymbol()  {
 }
 //rook
 bool Rook::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
-    std::cout <<"\nStart of rook valid\n"; 
 
    if (destination.x > BOARD_LENGTH || destination.y > BOARD_LENGTH) {
        return false; 
    } 
-//    //get abs differences
-//    int xdif, ydif; 
-//    xdif = abs(origin.x - destination.x); 
-//    ydif = abs(origin.y - destination.y); 
-//
-//    //rooks can only move in EITHer x or y axis
-//    if (xdif && ydif) {
-//        return false; 
-//    }
-//
-//    //get actual difference;
-//    int x, y; 
-//    x = origin.x - destination.x; 
-//    y = origin.y - destination.y;
-//
-//    //the directions, one will be 0
-//    int xdir, ydir; 
-//    xdir = (x==0) ? 0 : xdif / x; 
-//    ydir = (y==0) ? 0 : ydif / y; 
-//
-
 
    directionInfo info = getDirectionInfo(origin, destination); 
+
+   if (board.pieceAt(destination) && sameColor(board.pieceAt(destination))) {
+       return false; 
+   }
 
    if (info.absx && info.absy) {
        return false; 
@@ -235,14 +215,15 @@ bool Rook::isValidMove(const Coords &origin, const Coords &destination, const Bo
 
     //only one of xdir or ydir should be non-zero btw
     Coords intermediateSq(origin.x, origin.y); 
+    intermediateSq.x += info.xdir; 
+    intermediateSq.y += info.ydir; 
     while (intermediateSq != destination) {
-        intermediateSq.x += info.xdir; 
-        intermediateSq.y += info.ydir; 
-        std::cout <<"\nHello, in roovalid. sq.x = " << intermediateSq.x << " sq.y = " << intermediateSq.y << "\n"; 
+
         if (board.pieceAt(intermediateSq)) {
-            std::cout <<"\nThere is a piece obstructing the rook at sq: " << intermediateSq.toString() <<"\n"; 
             return false; 
         }
+        intermediateSq.x += info.xdir; 
+        intermediateSq.y += info.ydir; 
     }
 
     return true; 
@@ -283,8 +264,8 @@ bool Queen::isValidMove(const Coords &origin, const Coords &destination, const B
     //if moving like a bishop
     if (!likeRook) {
 
-            intermediateSq.x += info.xdir; 
-            intermediateSq.y += info.ydir; 
+        intermediateSq.x += info.xdir; 
+        intermediateSq.y += info.ydir; 
         while (intermediateSq != destination) {
 
             //there is piece in the way
@@ -299,8 +280,8 @@ bool Queen::isValidMove(const Coords &origin, const Coords &destination, const B
     else if (likeRook) {
 
 
-            intermediateSq.x += info.xdir; 
-            intermediateSq.y += info.ydir; 
+        intermediateSq.x += info.xdir; 
+        intermediateSq.y += info.ydir; 
         while (intermediateSq != destination) {
             if (board.pieceAt(intermediateSq)) {
                 return false; 
@@ -318,29 +299,27 @@ char Queen::getSymbol()  {
 
 //king
 bool King::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
+
     if (outOfBounds(destination)) {
         return false; 
     }
 
-    int xdif, ydif;
-    xdif = abs(origin.x - destination.x); 
-    ydif = abs(origin.y - destination.y); 
+    directionInfo info(getDirectionInfo(origin, destination)); 
 
-    if (xdif > 1 || ydif > 1) {
+    if (info.absx > 1 || info.absy > 1) {
         return false; 
     }
 
-    //get actual difference (which is also direction)
-    int xdir, ydir; 
-    xdir = origin.x - destination.x; 
-    ydir = origin.y - destination.y;
+    if (board.pieceAt(destination) && sameColor(board.pieceAt(destination))) {
+        return false; 
+    }
 
     //trying to castle
     //king must not have moved; releavn rook must not have moved; must be no pieces in the way 
     //nb all check logic to be handled by board
-    if (!hasMoved() && (xdir == 0 && ydir == 2)) {
+    if (!hasMoved() && (info.absx== 0 && info.absy == 2)) {
 
-        bool queenSide = (ydir < 0); 
+        bool queenSide = (info.ydir < 0); 
 
         Coords endSq(destination.x, destination.y+1); 
 
@@ -386,6 +365,9 @@ char King::getSymbol()  {
 }
 
 bool Pawn::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+    if (outOfBounds(kingLocation)) {
+        return false; 
+    }
     directionInfo info (getDirectionInfo(piece, kingLocation)); 
 
     //if 1-to-1 
@@ -408,6 +390,9 @@ bool Pawn::checkingKing(const Coords &piece, const Coords &kingLocation, const B
 }
 bool Bishop::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
 
+    if (outOfBounds(kingLocation)) {
+        return false; 
+    }
     directionInfo info (getDirectionInfo(piece, kingLocation)); 
 
     //if not on same diagonal
@@ -419,14 +404,16 @@ bool Bishop::checkingKing(const Coords &piece, const Coords &kingLocation, const
 
     Coords intermediateSq(piece.x, piece.y); 
 
-    while (intermediateSq != kingLocation) {
         intermediateSq.x += info.xdir; 
         intermediateSq.y += info.ydir; 
+    while (intermediateSq != kingLocation) {
 
         //there is piece in the way
         if (board.pieceAt(intermediateSq)) {
             return false; 
         }
+        intermediateSq.x += info.xdir; 
+        intermediateSq.y += info.ydir; 
     }
 
 
@@ -434,6 +421,9 @@ bool Bishop::checkingKing(const Coords &piece, const Coords &kingLocation, const
 }
 bool Rook::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
 
+    if (outOfBounds(kingLocation)) {
+        return false; 
+    }
     directionInfo info(getDirectionInfo(piece, kingLocation)); 
 
     //if not differing in ONLY col or row coord
@@ -471,6 +461,9 @@ bool Rook::checkingKing(const Coords &piece, const Coords &kingLocation, const B
 
 bool Knight::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
 
+    if (outOfBounds(kingLocation)) {
+        return false; 
+    }
     directionInfo info(getDirectionInfo(piece, kingLocation)); 
 
     //think this suffices. 
@@ -484,6 +477,9 @@ bool Knight::checkingKing(const Coords &piece, const Coords &kingLocation, const
 
 bool Queen::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
 
+    if (outOfBounds(kingLocation)) {
+        return false; 
+    }
     directionInfo info(getDirectionInfo(piece, kingLocation)); 
 
     bool likeRook = true; 
@@ -514,26 +510,30 @@ bool Queen::checkingKing(const Coords &piece, const Coords &kingLocation, const 
 
         //only one of xdir or ydir should be non-zero, just quicker this way
         Coords intermediateSq(piece.x, piece.y); 
-        while (intermediateSq != kingLocation) {
             intermediateSq.x += info.xdir; 
             intermediateSq.y += info.ydir; 
+        while (intermediateSq != kingLocation) {
             if (board.pieceAt(intermediateSq)) {
                 return false; 
             }
+            intermediateSq.x += info.xdir; 
+            intermediateSq.y += info.ydir; 
         }
 
     } else {
 
         Coords intermediateSq(piece.x, piece.y); 
-
-        while (intermediateSq != kingLocation) {
             intermediateSq.x += info.xdir; 
             intermediateSq.y += info.ydir; 
+
+        while (intermediateSq != kingLocation) {
 
             //there is piece in the way
             if (board.pieceAt(intermediateSq)) {
                 return false; 
             }
+            intermediateSq.x += info.xdir; 
+            intermediateSq.y += info.ydir; 
         }
 
     }
@@ -544,6 +544,9 @@ bool Queen::checkingKing(const Coords &piece, const Coords &kingLocation, const 
 //obviously not possible for a king to check a king
 //but check needed to make sure that kings are not being moved next to each other
 bool King::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+    if (outOfBounds(kingLocation)) {
+        return false; 
+    }
 
     directionInfo info(getDirectionInfo(piece, kingLocation)); 
 
