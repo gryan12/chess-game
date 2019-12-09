@@ -71,8 +71,9 @@ void Board::setNewPieces() {
 Board::Board()  {
     //init
     boardState = new Piece**[BOARD_LENGTH]; 
-
     setNewPieces(); 
+
+    alert(NEW_GAME); 
 
 }
 
@@ -117,13 +118,18 @@ Piece* Board::pieceAt(int x, int y) const {
 
 
 
-void Board::announceMove(const Coords &origin, const Coords &destination) {
+void Board::announceMove(const Coords &origin, const Coords &destination, bool tookAPiece = false) {
+
     std::string output; 
-
     output = pieceAt(destination)->toString(); 
-
     std::cout << output << " has moved from " 
-              << origin.toString() << " to " << destination.toString() << "\n" ; 
+              << origin.toString() << " to " << destination.toString(); 
+
+    if (tookAPiece) {
+        std::cout << " taking " << takenPieces.back()->toString(); 
+    }
+
+    std::cout << '\n'; 
 }
 
 bool Board::submitMove(std::string start, std::string end) {
@@ -133,9 +139,13 @@ bool Board::submitMove(std::string start, std::string end) {
     //need details about the type of move. if its check, if a piece
     //has been taken, etc
     if (pieceAt(origin)) {
+        bool taking = false; 
+        if (pieceAt(destination)) {
+            taking = true;
+        }
         if (movePiece(origin, destination)) {
 
-        announceMove(origin, destination); 
+        announceMove(origin, destination, taking); 
 
         std::string color;
         bool white = !pieceAt(destination)->isWhite(); 
@@ -194,15 +204,6 @@ bool Board::movePiece(const Coords &origin, const Coords &destination) {
         boardState[destination.x][destination.y] = boardState[origin.x][origin.y]; 
         boardState[origin.x][origin.y] = NULL; 
         moveNumber++; 
-
-        //bool white = !pieceAt(destination)->isWhite(); 
-       // pieceAt(destination)->isWhite() ? color = "Black" : color = "White"; 
-       // if (inCheck(white)) {
-       //     if (isCheckmate(white)) {
-       //         alert(CHECKMATE, "", color); 
-       //     }
-       //     alert(CHECK, "", color); 
-       // }
 
         return true; 
     }
@@ -381,6 +382,16 @@ bool Board::hasValidMove(bool white) {
     }
     return false; 
 }
+
+
+bool Board::gameOver() {
+    return (isCheckMate || isStaleMate); 
+}
+
+
+
+
+
 
 //copy assgnment
 //void Board::operator=(Board otherBoard) {

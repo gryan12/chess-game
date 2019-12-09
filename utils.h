@@ -13,7 +13,8 @@ enum moveType {
     CANNOT_MOVE,
     NO_PIECE, 
     CHECK, 
-    CHECKMATE
+    CHECKMATE, 
+    NEW_GAME
 }; 
 
 std::map<moveType, std::string> outcomes {
@@ -22,7 +23,8 @@ std::map<moveType, std::string> outcomes {
     {NO_PIECE, "There is no piece at position: "},
     {CANNOT_MOVE, " cannot move to "},
     {CHECK, " is in check"}, 
-    {CHECKMATE, " is in checkmate"}
+    {CHECKMATE, " is in checkmate"},
+    {NEW_GAME, "A new game has started!"}
 } ; 
 
 void alert(moveType movetype, const std::string &trailingMessage = "", const std::string &leadingMessage = "") {
@@ -30,7 +32,7 @@ void alert(moveType movetype, const std::string &trailingMessage = "", const std
     alert.append(leadingMessage); 
     alert.append(outcomes.at(movetype)); 
     alert.append(trailingMessage); 
-    std::cout << alert << "!\n"; 
+    std::cout << alert << "\n"; 
 }
 
 #endif

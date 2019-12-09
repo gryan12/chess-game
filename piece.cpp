@@ -568,66 +568,66 @@ std::string Pawn::toString() {
     std::string pawnString = ""; 
     
     if (isWhite()) {
-        pawnString.append("White's "); 
+        pawnString.append("White's"); 
     } else {
-        pawnString.append("Black's "); 
+        pawnString.append("Black's"); 
     }
-    pawnString.append(" pawn"); 
+    pawnString.append(" Pawn"); 
     return pawnString; 
 
 }
 std::string Knight::toString() {
     std::string pawnString = ""; 
     if (isWhite()) {
-        pawnString.append("White's "); 
+        pawnString.append("White's"); 
     } else {
-        pawnString.append("Black's "); 
+        pawnString.append("Black's"); 
     }
-    pawnString.append(" knight"); 
+    pawnString.append(" Knight"); 
     return pawnString; 
 
 }
 std::string Bishop::toString() {
     std::string pawnString = ""; 
     if (isWhite()) {
-        pawnString.append("White's "); 
+        pawnString.append("White's"); 
     } else {
-        pawnString.append("Black's "); 
+        pawnString.append("Black's"); 
     }
-    pawnString.append(" bishop"); 
+    pawnString.append(" Bishop"); 
     return pawnString; 
 
 }
 std::string Rook::toString() {
     std::string pawnString = ""; 
     if (isWhite()) {
-        pawnString.append("White's "); 
+        pawnString.append("White's"); 
     } else {
-        pawnString.append("Black's "); 
+        pawnString.append("Black's"); 
     }
-    pawnString.append(" rook"); 
+    pawnString.append(" Rook"); 
     return pawnString; 
 
 }
 std::string Queen::toString() {
     std::string pawnString = ""; 
     if (isWhite()) {
-        pawnString.append("White's "); 
+        pawnString.append("White's"); 
     } else {
-        pawnString.append("Black's "); 
+        pawnString.append("Black's"); 
     }
-    pawnString.append(" queen"); 
+    pawnString.append(" Queen"); 
     return pawnString; 
 
 }
 std::string King::toString() {
     std::string pawnString = ""; 
     if (isWhite()) {
-        pawnString.append("White's "); 
+        pawnString.append("White's"); 
     } else {
-        pawnString.append("Black's "); 
+        pawnString.append("Black's"); 
     }
-    pawnString.append(" king"); 
+    pawnString.append(" King"); 
     return pawnString; 
 
 }
