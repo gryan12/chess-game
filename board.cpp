@@ -1,11 +1,11 @@
-#include "board.h"
+#include "chessboard.h"
 #include "utils.h" 
 #include <iomanip>
 #include <cstddef> 
 #include <iostream> 
 #include <string> 
 
-void Board::setNewPieces() {
+void ChessBoard::setNewPieces() {
 
     for (int i = 0; i < BOARD_LENGTH; i++) {
         boardState[i] = new Piece*[BOARD_LENGTH]; 
@@ -68,7 +68,7 @@ void Board::setNewPieces() {
 }
 
 
-Board::Board()  {
+ChessBoard::ChessBoard()  {
     //init
     boardState = new Piece**[BOARD_LENGTH]; 
     setNewPieces(); 
@@ -77,7 +77,7 @@ Board::Board()  {
 
 }
 
-Board::~Board() {
+ChessBoard::~ChessBoard() {
     //delete pieces on the board
     for (int i = 0; i < BOARD_LENGTH; i++) {
         delete[] boardState[i]; 
@@ -90,7 +90,7 @@ Board::~Board() {
     }
 }
 
-void Board::printBoard() {
+void ChessBoard::printBoard() {
 
     std::cout <<'\n'; 
     for (int i = 0; i < BOARD_LENGTH; i++) {
@@ -109,16 +109,16 @@ void Board::printBoard() {
 
 /* pointer to piece (or null pointer) at given board
  * coords */
-Piece* Board::pieceAt(const Coords &location) const {
+Piece* ChessBoard::pieceAt(const Coords &location) const {
     return boardState[location.x][location.y]; 
 }
-Piece* Board::pieceAt(int x, int y) const {
+Piece* ChessBoard::pieceAt(int x, int y) const {
     return boardState[x][y]; 
 }
 
 
 
-void Board::announceMove(const Coords &origin, const Coords &destination, bool tookAPiece = false) {
+void ChessBoard::announceMove(const Coords &origin, const Coords &destination, bool tookAPiece = false) {
 
     std::string output; 
     output = pieceAt(destination)->toString(); 
@@ -132,7 +132,7 @@ void Board::announceMove(const Coords &origin, const Coords &destination, bool t
     std::cout << '\n'; 
 }
 
-bool Board::submitMove(std::string start, std::string end) {
+bool ChessBoard::submitMove(std::string start, std::string end) {
     Coords origin(start); 
     Coords destination(end); 
 
@@ -170,7 +170,7 @@ bool Board::submitMove(std::string start, std::string end) {
     return false; 
 }
 
-bool Board::movePiece(const Coords &origin, const Coords &destination) {
+bool ChessBoard::movePiece(const Coords &origin, const Coords &destination) {
 
     if (pieceAt(origin) == NULL) {
         return false; 
@@ -210,7 +210,7 @@ bool Board::movePiece(const Coords &origin, const Coords &destination) {
     return false; 
 }
 
-Coords Board::getKingSq(bool white) {
+Coords ChessBoard::getKingSq(bool white) {
     for (int i = 0; i < BOARD_LENGTH; i++) {
         for (int j = 0; j < BOARD_LENGTH; j++) {
             Coords kingSq(i, j); 
@@ -227,7 +227,7 @@ Coords Board::getKingSq(bool white) {
     return failed; 
 }
 
-bool Board::inCheck(bool whiteKing) {
+bool ChessBoard::inCheck(bool whiteKing) {
     Coords kingSq(getKingSq(whiteKing)); 
     for (int i = 0; i < BOARD_LENGTH; i++) {
         for (int j = 0; j < BOARD_LENGTH; j++) {
@@ -243,7 +243,7 @@ bool Board::inCheck(bool whiteKing) {
     return false; 
 }
 
-bool Board::inCheck(const Coords &kingLocation, bool whiteKing) {
+bool ChessBoard::inCheck(const Coords &kingLocation, bool whiteKing) {
     for (int i = 0; i < BOARD_LENGTH; i++) {
         for (int j = 0; j < BOARD_LENGTH; j++) {
             //if piece present at coords which is of opposite color
@@ -258,7 +258,7 @@ bool Board::inCheck(const Coords &kingLocation, bool whiteKing) {
     return false; 
 }
 
-//bool Board::makeMove(const Coords &origin, const Coords &destination, bool whiteKing) {
+//bool ChessBoard::makeMove(const Coords &origin, const Coords &destination, bool whiteKing) {
 //    takenPieces.push_back(pieceAt(destination)); 
 //    boardState[destination.x][destination.y] = pieceAt(origin); 
 //    boardstate[origin.x][origin.y] = NULL;
@@ -266,7 +266,7 @@ bool Board::inCheck(const Coords &kingLocation, bool whiteKing) {
 
 
 //for same color as those moving. move must
-bool Board::wouldBeCheck(const Coords &origin, const Coords &destination, bool whiteKing) {
+bool ChessBoard::wouldBeCheck(const Coords &origin, const Coords &destination, bool whiteKing) {
 
 
     if ((destination.x > 7 || destination.x < 0) || (destination.y > 7 || destination.y < 0)) {
@@ -305,7 +305,7 @@ bool Board::wouldBeCheck(const Coords &origin, const Coords &destination, bool w
 //then, can just do the above function but for every available square to the king
 //messy but would be: if valid move (for every single-squared difference) then
 //check if (would be) check. if true for every square then return cmate
-bool Board::isCheckmate(bool whiteKing) {
+bool ChessBoard::isCheckmate(bool whiteKing) {
 
     Coords kingSq(getKingSq(whiteKing)); 
     
@@ -322,12 +322,12 @@ bool Board::isCheckmate(bool whiteKing) {
 
 
 
-int Board::getMoveNumber() {
+int ChessBoard::getMoveNumber() {
     return moveNumber; 
 }
 
 
-void Board::resetBoard() {
+void ChessBoard::resetBoard() {
     std::cout  <<"\nIn reset\n"; 
 
     //remove all pieces
@@ -352,12 +352,12 @@ void Board::resetBoard() {
     moveNumber = 0; 
 }
 
-bool Board::whitesTurn() {
+bool ChessBoard::whitesTurn() {
     return (!moveNumber%2); 
 }
 
 
-bool Board::hasValidMove(bool white) {
+bool ChessBoard::hasValidMove(bool white) {
     for (int i = 0; i < BOARD_LENGTH; i++) {
         for (int j = 0; j < BOARD_LENGTH; j++) {
             if (pieceAt(i,j) && (pieceAt(i, j)->isWhite() == white)) {
@@ -384,7 +384,7 @@ bool Board::hasValidMove(bool white) {
 }
 
 
-bool Board::gameOver() {
+bool ChessBoard::gameOver() {
     return (isCheckMate || isStaleMate); 
 }
 

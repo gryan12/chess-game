@@ -1,4 +1,4 @@
-#include "board.h"
+#include "chessboard.h"
 #include <iostream> 
 #include <stdlib.h>
 #include "piece.h"
@@ -14,6 +14,7 @@ bool outOfBounds(const Coords &destination) {
     return false; 
 }
 
+//START piece 
 directionInfo Piece::getDirectionInfo(const Coords &origin, const Coords &destination) {
 
     //get actual difference;
@@ -53,21 +54,22 @@ void Piece::isMoved() {
     moved = true; 
 }
 
-bool Pawn::canBeEnpassant() {
-    return enpassant; 
-}
-
 bool Piece::sameColor(Piece *piece) {
     return (piece->isWhite() == isWhite()); 
+}
+
+//END piece
+
+bool Pawn::canBeEnpassant() {
+    return enpassant; 
 }
 
 void Pawn::setEnpassant(bool can) {
     enpassant = can; 
 }
-//pawn
-//this... this should be static, shouldn't it?
-//need to add check for when trying to move a pwn to its backrank
-bool Pawn::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
+
+
+bool Pawn::isValidMove(const Coords &origin, const Coords &destination, const ChessBoard &board) {
 
     directionInfo info(getDirectionInfo(origin, destination)); 
 
@@ -92,13 +94,10 @@ bool Pawn::isValidMove(const Coords &origin, const Coords &destination, const Bo
         return false;//trying to move forward 2 squares after the first move
     } 
 
-    //its here. i am tryng to acess value of anull ponter. 
+    
     if (info.absy > 1 && board.pieceAt(destination) == NULL) {
         if (!enpassant) {
             return false; //trying to take non-existant piece / own piece
-        }
-        else {
-
         }
     } 
 
@@ -129,7 +128,7 @@ char Pawn::getSymbol()  {
 }
 
 //bishop
-bool Bishop::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
+bool Bishop::isValidMove(const Coords &origin, const Coords &destination, const ChessBoard &board) {
 
     directionInfo info(getDirectionInfo(origin, destination)); 
 
@@ -170,7 +169,7 @@ char Bishop::getSymbol()  {
     return symbol;
 }
 //knight
-bool Knight::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
+bool Knight::isValidMove(const Coords &origin, const Coords &destination, const ChessBoard &board) {
 
    if (destination.x > BOARD_LENGTH || destination.y > BOARD_LENGTH) {
        return false; 
@@ -197,7 +196,7 @@ char Knight::getSymbol()  {
     return symbol;
 }
 //rook
-bool Rook::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
+bool Rook::isValidMove(const Coords &origin, const Coords &destination, const ChessBoard &board) {
 
    if (destination.x > BOARD_LENGTH || destination.y > BOARD_LENGTH) {
        return false; 
@@ -232,7 +231,7 @@ char Rook::getSymbol()  {
     return symbol;
 }
 //queen
-bool Queen::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
+bool Queen::isValidMove(const Coords &origin, const Coords &destination, const ChessBoard &board) {
 
     if (outOfBounds(destination)) {
         return false; 
@@ -298,7 +297,7 @@ char Queen::getSymbol()  {
 }
 
 //king
-bool King::isValidMove(const Coords &origin, const Coords &destination, const Board &board) {
+bool King::isValidMove(const Coords &origin, const Coords &destination, const ChessBoard &board) {
 
     if (outOfBounds(destination)) {
         return false; 
@@ -364,7 +363,7 @@ char King::getSymbol()  {
     return symbol;
 }
 
-bool Pawn::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+bool Pawn::checkingKing(const Coords &piece, const Coords &kingLocation, const ChessBoard &board) {
     if (outOfBounds(kingLocation)) {
         return false; 
     }
@@ -388,7 +387,7 @@ bool Pawn::checkingKing(const Coords &piece, const Coords &kingLocation, const B
 
     return false; 
 }
-bool Bishop::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+bool Bishop::checkingKing(const Coords &piece, const Coords &kingLocation, const ChessBoard &board) {
 
     if (outOfBounds(kingLocation)) {
         return false; 
@@ -419,7 +418,7 @@ bool Bishop::checkingKing(const Coords &piece, const Coords &kingLocation, const
 
     return true; 
 }
-bool Rook::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+bool Rook::checkingKing(const Coords &piece, const Coords &kingLocation, const ChessBoard &board) {
 
     if (outOfBounds(kingLocation)) {
         return false; 
@@ -459,7 +458,7 @@ bool Rook::checkingKing(const Coords &piece, const Coords &kingLocation, const B
     return true; 
 }
 
-bool Knight::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+bool Knight::checkingKing(const Coords &piece, const Coords &kingLocation, const ChessBoard &board) {
 
     if (outOfBounds(kingLocation)) {
         return false; 
@@ -475,7 +474,7 @@ bool Knight::checkingKing(const Coords &piece, const Coords &kingLocation, const
 }
 
 
-bool Queen::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+bool Queen::checkingKing(const Coords &piece, const Coords &kingLocation, const ChessBoard &board) {
 
     if (outOfBounds(kingLocation)) {
         return false; 
@@ -543,7 +542,7 @@ bool Queen::checkingKing(const Coords &piece, const Coords &kingLocation, const 
 
 //obviously not possible for a king to check a king
 //but check needed to make sure that kings are not being moved next to each other
-bool King::checkingKing(const Coords &piece, const Coords &kingLocation, const Board &board) {
+bool King::checkingKing(const Coords &piece, const Coords &kingLocation, const ChessBoard &board) {
     if (outOfBounds(kingLocation)) {
         return false; 
     }

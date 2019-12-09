@@ -1,11 +1,10 @@
 #include <iostream> 
-#include "piece.h"
-#include "board.h"
+#include "chessboard.h"
 
 using namespace std; 
 int main() {
 
-   // Board newBoard; 
+   // ChessBoard newBoard; 
    // newBoard.printBoard();
 
    //// std::cout <<"\n=========\n"; 
@@ -26,7 +25,7 @@ int main() {
 	cout << "Testing the Chess Engine\n";
 	cout << "========================\n\n";
 
-	Board cb;
+	ChessBoard cb;
 	cout << '\n';
 
 	cb.submitMove("D7", "D6");
@@ -92,4 +91,5 @@ int main() {
 	cout << '\n';
 
     return 0; 
+
 }
